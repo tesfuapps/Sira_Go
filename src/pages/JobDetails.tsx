@@ -1,6 +1,6 @@
 import React from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { MapPin, Building2, Banknote, Calendar, ArrowLeft, Send, Bookmark } from 'lucide-react';
+import { MapPin, Building2, Banknote, Calendar, ArrowLeft, Send, Bookmark, Share2 } from 'lucide-react';
 import { useJobs } from '../context/JobContext';
 
 export function JobDetails() {
@@ -28,6 +28,20 @@ export function JobDetails() {
     }
   };
 
+  const handleShare = () => {
+    const url = `${window.location.origin}/jobs/${job.id}`;
+    if (navigator.share) {
+      navigator.share({
+        title: job.title,
+        text: `Check out this job on SiraHub: ${job.title} at ${job.company}`,
+        url: url,
+      }).catch((error) => console.log('Error sharing:', error));
+    } else {
+      navigator.clipboard.writeText(url);
+      alert('Link copied to clipboard!');
+    }
+  };
+
   return (
     <div className="max-w-3xl mx-auto py-8">
       <Link to="/" className="inline-flex items-center gap-2 text-gray-500 hover:text-[--color-sira-blue] mb-8 transition-colors">
@@ -38,17 +52,31 @@ export function JobDetails() {
         <div className="mb-8 pb-8 border-b border-gray-100">
           <div className="flex justify-between items-start gap-4 mb-4">
             <h1 className="text-3xl md:text-4xl font-extrabold text-[#0B2C5F] shrink">{job.title}</h1>
-            <button 
-              onClick={() => toggleSavedJob(job.id)}
-              className={`relative group p-3 rounded-full shrink-0 transition-colors ${savedJobIds.includes(job.id) ? 'bg-[--color-sira-orange]/10 text-[--color-sira-orange] hover:bg-[--color-sira-orange]/20' : 'bg-gray-50 text-gray-400 hover:bg-gray-100'}`}
-              aria-label={savedJobIds.includes(job.id) ? "Remove from bookmarks" : "Save this job"}
-            >
-              <Bookmark size={24} fill={savedJobIds.includes(job.id) ? 'currentColor' : 'none'} />
-              <div className="absolute opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none -top-10 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-xs whitespace-nowrap py-1.5 px-2.5 rounded shadow z-20">
-                {savedJobIds.includes(job.id) ? "Remove from saved" : "Save job"}
-                <div className="absolute w-2 h-2 bg-gray-900 rotate-45 -bottom-1 left-1/2 -translate-x-1/2"></div>
-              </div>
-            </button>
+            <div className="flex items-center gap-2">
+              <button 
+                onClick={handleShare}
+                className="relative group p-3 rounded-full shrink-0 transition-colors bg-gray-50 text-gray-400 hover:text-[--color-sira-blue] hover:bg-blue-50"
+                aria-label="Share this job"
+              >
+                <Share2 size={24} />
+                <div className="absolute opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none -top-10 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-xs whitespace-nowrap py-1.5 px-2.5 rounded shadow z-20">
+                  Share
+                  <div className="absolute w-2 h-2 bg-gray-900 rotate-45 -bottom-1 left-1/2 -translate-x-1/2"></div>
+                </div>
+              </button>
+
+              <button 
+                onClick={() => toggleSavedJob(job.id)}
+                className={`relative group p-3 rounded-full shrink-0 transition-colors ${savedJobIds.includes(job.id) ? 'bg-[--color-sira-orange]/10 text-[--color-sira-orange] hover:bg-[--color-sira-orange]/20' : 'bg-gray-50 text-gray-400 hover:bg-gray-100'}`}
+                aria-label={savedJobIds.includes(job.id) ? "Remove from bookmarks" : "Save this job"}
+              >
+                <Bookmark size={24} fill={savedJobIds.includes(job.id) ? 'currentColor' : 'none'} />
+                <div className="absolute opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none -top-10 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-xs whitespace-nowrap py-1.5 px-2.5 rounded shadow z-20">
+                  {savedJobIds.includes(job.id) ? "Remove from saved" : "Save job"}
+                  <div className="absolute w-2 h-2 bg-gray-900 rotate-45 -bottom-1 left-1/2 -translate-x-1/2"></div>
+                </div>
+              </button>
+            </div>
           </div>
           <div className="flex flex-wrap items-center gap-6 text-gray-600">
             <div className="flex items-center gap-2 font-medium text-gray-900">

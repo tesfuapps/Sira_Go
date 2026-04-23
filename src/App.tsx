@@ -11,6 +11,7 @@ import { AdminPanel } from './pages/AdminPanel';
 import { SavedJobs } from './pages/SavedJobs';
 import { HowItWorks } from './pages/HowItWorks';
 import { WhyChooseUs } from './pages/WhyChooseUs';
+import { Profile } from './pages/Profile';
 
 export default function App() {
   return (
@@ -28,6 +29,7 @@ export default function App() {
               <Route path="/jobs/:id" element={<JobDetails />} />
               <Route path="/admin" element={<AdminPanel />} />
               <Route path="/saved" element={<SavedJobs />} />
+              <Route path="/profile" element={<Profile />} />
             </Routes>
           </Layout>
         </Router>

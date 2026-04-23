@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Bookmark, Clock, Loader2 } from 'lucide-react';
+import { Bookmark, Clock, Loader2, Share2 } from 'lucide-react';
 import { Job } from '../types';
 import { useJobs } from '../context/JobContext';
 
@@ -27,6 +27,22 @@ export function JobCard({ job }: { job: Job; key?: React.Key }) {
     }
   };
 
+  const handleShare = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const url = `${window.location.origin}/jobs/${job.id}`;
+    if (navigator.share) {
+      navigator.share({
+        title: job.title,
+        text: `Check out this job on SiraHub: ${job.title} at ${job.company}`,
+        url: url,
+      }).catch((error) => console.log('Error sharing:', error));
+    } else {
+      navigator.clipboard.writeText(url);
+      alert('Link copied to clipboard!');
+    }
+  };
+
   return (
     <div 
       onClick={() => navigate(`/jobs/${job.id}`)}
@@ -34,29 +50,50 @@ export function JobCard({ job }: { job: Job; key?: React.Key }) {
     >
       <div className="flex justify-between items-start mb-3">
         <div className="flex flex-col gap-2">
-          <span className="w-max px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-medium">
-            {typePill}
-          </span>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="w-max px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-medium">
+              {typePill}
+            </span>
+            {job.category && (
+              <span className="w-max px-3 py-1 bg-blue-50 text-[--color-sira-blue] rounded-full text-xs font-medium border border-blue-100">
+                {job.category}
+              </span>
+            )}
+          </div>
           <span className="text-[--color-sira-blue] font-bold text-sm">
             {job.salary || 'Negotiable'}
           </span>
         </div>
-        <button 
-          onClick={handleToggleSave}
-          disabled={isSaving}
-          className={`relative group p-2 rounded-full shrink-0 transition-colors ${isSaving ? 'text-gray-400' : isSaved ? 'text-[--color-sira-orange]' : 'text-gray-300 hover:text-gray-400 hover:bg-gray-50'}`}
-          aria-label={isSaved ? "Remove from saved jobs" : "Save this job"}
-        >
-          {isSaving ? (
-            <Loader2 size={20} className="animate-spin" />
-          ) : (
-            <Bookmark size={20} fill={isSaved ? 'currentColor' : 'none'} />
-          )}
-          <div className="absolute opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none -top-10 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-xs whitespace-nowrap py-1.5 px-2.5 rounded shadow z-10">
-            {isSaved ? "Remove from saved" : "Save job"}
-            <div className="absolute w-2 h-2 bg-gray-900 rotate-45 -bottom-1 left-1/2 -translate-x-1/2"></div>
-          </div>
-        </button>
+        <div className="flex items-center gap-1">
+          <button 
+            onClick={handleShare}
+            className="relative group p-2 rounded-full shrink-0 transition-colors text-gray-300 hover:text-[--color-sira-blue] hover:bg-gray-50"
+            aria-label="Share this job"
+          >
+            <Share2 size={20} />
+            <div className="absolute opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none -top-10 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-xs whitespace-nowrap py-1.5 px-2.5 rounded shadow z-10">
+              Share
+              <div className="absolute w-2 h-2 bg-gray-900 rotate-45 -bottom-1 left-1/2 -translate-x-1/2"></div>
+            </div>
+          </button>
+          
+          <button 
+            onClick={handleToggleSave}
+            disabled={isSaving}
+            className={`relative group p-2 rounded-full shrink-0 transition-colors ${isSaving ? 'text-gray-400' : isSaved ? 'text-[--color-sira-orange]' : 'text-gray-300 hover:text-gray-400 hover:bg-gray-50'}`}
+            aria-label={isSaved ? "Remove from saved jobs" : "Save this job"}
+          >
+            {isSaving ? (
+              <Loader2 size={20} className="animate-spin" />
+            ) : (
+              <Bookmark size={20} fill={isSaved ? 'currentColor' : 'none'} />
+            )}
+            <div className="absolute opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none -top-10 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-xs whitespace-nowrap py-1.5 px-2.5 rounded shadow z-10">
+              {isSaved ? "Remove from saved" : "Save job"}
+              <div className="absolute w-2 h-2 bg-gray-900 rotate-45 -bottom-1 left-1/2 -translate-x-1/2"></div>
+            </div>
+          </button>
+        </div>
       </div>
       <h3 className="font-bold text-lg mb-1 text-gray-900 pr-8 leading-tight">{job.title}</h3>
       <p className="text-gray-500 text-sm mb-3 line-clamp-1 font-medium">

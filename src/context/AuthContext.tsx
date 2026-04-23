@@ -7,6 +7,8 @@ export interface UserProfile {
   email: string;
   role: 'admin' | 'employer' | 'seeker';
   createdAt: any;
+  displayName?: string;
+  phone?: string;
 }
 
 interface AuthContextType {

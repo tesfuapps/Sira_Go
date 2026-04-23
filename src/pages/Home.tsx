@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useJobs } from '../context/JobContext';
 import { JobCard } from '../components/JobCard';
 import { AlertModal } from '../components/AlertModal';
-import { Zap, Search, Bell } from 'lucide-react';
+import { Zap, Search, Bell, ChevronDown } from 'lucide-react';
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 
@@ -208,37 +208,41 @@ What we're looking for:
         </div>
 
         {/* Filters */}
-        <div className="max-w-3xl mx-auto w-full mb-12 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="w-full sm:w-auto overflow-x-auto hide-scrollbar pb-2 sm:pb-0">
-            <div className="flex items-center gap-2">
-              {['All', 'Developers', 'Creatives', 'Finance', 'Marketing & Sales', 'Management', 'Operations', 'Other'].map((cat) => (
-                <button
-                  key={cat}
-                  onClick={() => setCategoryFilter(cat as JobCategory | 'All')}
-                  className={`px-4 py-2 rounded-full whitespace-nowrap text-sm font-medium transition-colors border ${
-                    categoryFilter === cat 
-                      ? 'bg-[--color-sira-blue] border-[--color-sira-blue] text-white shadow-sm' 
-                      : 'bg-white border-gray-200 text-gray-600 hover:border-[--color-sira-blue] hover:text-[--color-sira-blue]'
-                  }`}
-                >
-                  {cat}
-                </button>
-              ))}
+        <div className="max-w-3xl mx-auto w-full mb-12 flex flex-col items-start gap-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between w-full gap-4">
+            <div className="w-full overflow-x-auto hide-scrollbar pb-1">
+              <div className="flex items-center gap-1.5 border-b border-gray-100 min-w-max pb-2">
+                {['All', 'Developers', 'Creatives', 'Finance', 'Marketing & Sales', 'Management', 'Operations', 'Other'].map((cat) => (
+                  <button
+                    key={cat}
+                    onClick={() => setCategoryFilter(cat as JobCategory | 'All')}
+                    className={`px-4 py-2 rounded-lg whitespace-nowrap text-sm font-semibold transition-all ${
+                      categoryFilter === cat 
+                        ? 'bg-[#0B2C5F] text-white shadow-sm' 
+                        : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'
+                    }`}
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
-          
-          <div className="flex shrink-0 w-full sm:w-auto items-center gap-2">
-            <span className="text-sm font-medium text-gray-500 whitespace-nowrap hidden md:inline-block">Posted:</span>
-            <select
-              value={dateFilter}
-              onChange={(e) => setDateFilter(e.target.value as 'Any' | '24h' | 'Week' | 'Month')}
-              className="bg-white border border-gray-200 text-gray-700 text-sm rounded-full focus:ring-[--color-sira-blue] focus:border-[--color-sira-blue] block w-full py-2 px-4 font-medium appearance-none min-w-[120px]"
-            >
-              <option value="Any">Any time</option>
-              <option value="24h">Past 24 hours</option>
-              <option value="Week">Past week</option>
-              <option value="Month">Past month</option>
-            </select>
+            
+            <div className="relative shrink-0 w-full sm:w-[150px]">
+               <select
+                 value={dateFilter}
+                 onChange={(e) => setDateFilter(e.target.value as 'Any' | '24h' | 'Week' | 'Month')}
+                 className="appearance-none bg-gray-50 border border-gray-200 text-gray-700 text-sm font-semibold rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0B2C5F] focus:border-transparent block w-full py-2.5 pl-4 pr-10 cursor-pointer hover:bg-gray-100 transition-colors"
+               >
+                 <option value="Any">Any time</option>
+                 <option value="24h">Past 24 hours</option>
+                 <option value="Week">Past week</option>
+                 <option value="Month">Past month</option>
+               </select>
+               <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
+                 <ChevronDown size={16} />
+               </div>
+            </div>
           </div>
         </div>
 

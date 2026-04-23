@@ -25,9 +25,11 @@ service cloud.firestore {
 
     // --- User Object ---
     function isValidUser(data) {
-      return data.keys().hasAll(['email', 'role', 'createdAt']) && data.keys().size() == 3
+      return data.keys().hasAll(['email', 'role', 'createdAt']) && data.keys().size() <= 5
         && data.email is string && data.email.size() <= 255
         && data.role in ["admin", "employer", "seeker"]
+        && (!('displayName' in data) || (data.displayName is string && data.displayName.size() <= 100))
+        && (!('phone' in data) || (data.phone is string && data.phone.size() <= 30))
         && (data.createdAt is timestamp);
     }
 
