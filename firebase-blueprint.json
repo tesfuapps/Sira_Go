@@ -1,0 +1,66 @@
+# Firebase Config Blueprint
+
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "A user of SiraHub (admin, employer, or seeker)",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string" },
+        "role": { "type": "string", "enum": ["admin", "employer", "seeker"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["email", "role", "createdAt"]
+    },
+    "Job": {
+      "title": "Job",
+      "description": "A job posting by an employer",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "company": { "type": "string" },
+        "location": { "type": "string" },
+        "salary": { "type": "string" },
+        "deadline": { "type": "string" },
+        "description": { "type": "string" },
+        "applyMethod": {
+          "type": "object",
+          "properties": {
+            "type": { "type": "string", "enum": ["telegram", "phone", "link"] },
+            "value": { "type": "string" }
+          },
+          "required": ["type", "value"]
+        },
+        "status": { "type": "string", "enum": ["Pending", "Approved", "Rejected"] },
+        "employerId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "company", "location", "deadline", "description", "applyMethod", "status", "employerId", "createdAt"]
+    },
+    "SavedJob": {
+      "title": "SavedJob",
+      "description": "A reference to a saved job by a user",
+      "type": "object",
+      "properties": {
+        "jobId": { "type": "string" },
+        "savedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["jobId", "savedAt"]
+    }
+  },
+  "firestore": {
+    "users/{userId}": {
+      "schema": { "$ref": "#/entities/User" },
+      "description": "Stores user profiles with their roles for RBAC"
+    },
+    "users/{userId}/savedJobs/{jobId}": {
+      "schema": { "$ref": "#/entities/SavedJob" },
+      "description": "Stores jobs that a seeker has saved"
+    },
+    "jobs/{jobId}": {
+      "schema": { "$ref": "#/entities/Job" },
+      "description": "Global collection of all job postings"
+    }
+  }
+}

@@ -1,0 +1,139 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 0. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Primitives
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+    function isSignedIn() { return request.auth != null; }
+    function isValidId(id) { return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); }
+
+    // Admin lookup
+    function isAdmin() { 
+      return isSignedIn() && exists(/databases/$(database)/documents/users/$(request.auth.uid)) 
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin"; 
+    }
+
+    function isEmployer(uid) {
+      return isSignedIn() && exists(/databases/$(database)/documents/users/$(uid)) 
+        && get(/databases/$(database)/documents/users/$(uid)).data.role == "employer"; 
+    }
+
+    // --- User Object ---
+    function isValidUser(data) {
+      return data.keys().hasAll(['email', 'role', 'createdAt']) && data.keys().size() == 3
+        && data.email is string && data.email.size() <= 255
+        && data.role in ["admin", "employer", "seeker"]
+        && (data.createdAt is timestamp);
+    }
+
+    match /users/{userId} {
+      allow get: if isValidId(userId) && (request.auth.uid == userId || isAdmin());
+      allow create: if isValidId(userId) && request.auth.uid == userId
+        && isValidUser(incoming())
+        && incoming().createdAt == request.time
+        && incoming().role != "admin"; 
+      allow update: if isValidId(userId) && request.auth.uid == userId
+        && isValidUser(incoming())
+        && incoming().createdAt == existing().createdAt
+        && (incoming().role == existing().role || isAdmin());
+    }
+
+    // --- Saved Jobs ---
+    function isValidSavedJob(data) {
+      return data.keys().hasAll(['jobId', 'savedAt']) && data.keys().size() == 2
+        && isValidId(data.jobId)
+        && data.savedAt is timestamp;
+    }
+
+    match /users/{userId}/savedJobs/{jId} {
+      allow read: if isValidId(userId) && request.auth.uid == userId;
+      allow create: if isValidId(userId) && request.auth.uid == userId
+        && isValidSavedJob(incoming())
+        && incoming().savedAt == request.time;
+      allow delete: if isValidId(userId) && request.auth.uid == userId;
+    }
+
+    // --- Job Object ---
+    function isValidApplyMethod(data) {
+      return data.keys().hasAll(['type', 'value']) && data.keys().size() == 2
+        && data.type in ['telegram', 'phone', 'link']
+        && data.value is string && data.value.size() <= 255;
+    }
+
+    function isValidJob(data) {
+      return (
+        (data.keys().hasAll(['title', 'company', 'location', 'deadline', 'description', 'applyMethod', 'status', 'employerId', 'createdAt']) && data.keys().size() >= 9)
+      )
+      && data.title is string && data.title.size() <= 100
+      && data.company is string && data.company.size() <= 100
+      && data.location is string && data.location.size() <= 100
+      && data.deadline is string && data.deadline.size() <= 100
+      && data.description is string && data.description.size() <= 50000
+      && (!('salary' in data) || (data.salary is string && data.salary.size() <= 100))
+      && (!('category' in data) || (data.category is string && data.category in ['Developers', 'Creatives', 'Finance', 'Marketing & Sales', 'Management', 'Operations', 'Other']))
+      && isValidApplyMethod(data.applyMethod)
+      && data.status in ["Pending", "Approved", "Rejected"]
+      && isValidId(data.employerId)
+      && data.createdAt is timestamp;
+    }
+
+    // --- Alerts Object ---
+    function isValidAlert(data) {
+      return (
+        (data.keys().hasAll(['userId', 'keyword', 'notifyVia', 'contact', 'createdAt']) && data.keys().size() == 5) ||
+        (data.keys().hasAll(['userId', 'keyword', 'notifyVia', 'contact', 'createdAt', 'location']) && data.keys().size() == 6 && data.location is string && data.location.size() <= 100)
+      ) && data.userId is string
+        && data.keyword is string && data.keyword.size() <= 100
+        && data.notifyVia in ['email', 'telegram']
+        && data.contact is string && data.contact.size() <= 255
+        && data.createdAt is timestamp;
+    }
+
+    match /alerts/{alertId} {
+      allow get: if isSignedIn() && (existing().userId == request.auth.uid || isAdmin());
+      allow list: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isSignedIn()
+        && isValidAlert(incoming())
+        && incoming().userId == request.auth.uid
+        && incoming().createdAt == request.time;
+      allow update: if false;
+      allow delete: if isSignedIn() && (existing().userId == request.auth.uid || isAdmin());
+    }
+
+    match /jobs/{jobId} {
+        allow get: if isValidId(jobId) && (existing().status == "Approved" || (isSignedIn() && existing().employerId == request.auth.uid) || isAdmin());
+        
+        allow list: if resource.data.status == "Approved" 
+                    || (isSignedIn() && resource.data.employerId == request.auth.uid) 
+                    || isAdmin();
+
+        allow create: if isValidId(jobId) 
+          && isValidJob(incoming())
+          && incoming().createdAt == request.time;
+
+        allow update: if isValidId(jobId)
+          && isSignedIn()
+          && isValidJob(incoming())
+          && (
+               isAdmin() || 
+               (
+                 existing().employerId == request.auth.uid &&
+                 incoming().employerId == existing().employerId &&
+                 incoming().createdAt == existing().createdAt &&
+                 (
+                   (incoming().status == existing().status) ||
+                   (incoming().status == "Pending" && existing().status in ["Pending", "Rejected"])
+                 ) &&
+                 incoming().diff(existing()).affectedKeys().hasAny(['title', 'company', 'location', 'salary', 'category', 'deadline', 'description', 'applyMethod', 'status'])
+               )
+             );
+
+        allow delete: if isValidId(jobId) && (existing().employerId == request.auth.uid || isAdmin());
+    }
+  }
+}
