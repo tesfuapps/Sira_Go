@@ -7,6 +7,8 @@ import { collection, doc, query, onSnapshot, setDoc, updateDoc, deleteDoc, serve
 interface JobContextType {
   jobs: Job[];
   savedJobIds: string[];
+  jobsLoading: boolean;
+  jobsError: string | null;
   addJob: (job: Omit<Job, 'id' | 'status' | 'createdAt' | 'employerId'>) => Promise<void>;
   updateJobStatus: (id: string, status: JobStatus) => Promise<void>;
   editJob: (id: string, updatedData: Partial<Job>) => Promise<void>;
@@ -17,11 +19,20 @@ interface JobContextType {
 const JobContext = createContext<JobContextType | undefined>(undefined);
 
 export function JobProvider({ children }: { children: ReactNode }) {
-  const { user, profile } = useAuth();
+  const { user, profile, loading: authLoading } = useAuth();
   const [jobs, setJobs] = useState<Job[]>([]);
   const [savedJobIds, setSavedJobIds] = useState<string[]>([]);
+  const [jobsLoading, setJobsLoading] = useState(true);
+  const [jobsError, setJobsError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (authLoading) {
+      setJobsLoading(true);
+      return;
+    }
+    setJobsLoading(true);
+    setJobsError(null);
+
     if (profile?.role === 'admin') {
       const q = query(collection(db, 'jobs'));
       const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -30,13 +41,15 @@ export function JobProvider({ children }: { children: ReactNode }) {
           fetchedJobs.push({ id: docSnap.id, ...docSnap.data(), createdAt: docSnap.data().createdAt?.toDate().toISOString() || new Date().toISOString() } as Job);
         });
         setJobs(fetchedJobs.sort((a,b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
-      }, console.error);
+        setJobsLoading(false);
+      }, (err) => { console.error(err); setJobsError(err.message); setJobsLoading(false); });
       return () => unsubscribe();
     } else if (profile?.role === 'employer' && user) {
-      // Avoid OR query index issues by using two separate queries
       const q1 = query(collection(db, 'jobs'), where('status', '==', 'Approved'));
       const q2 = query(collection(db, 'jobs'), where('employerId', '==', user.uid));
       
+      let firstLoad1 = true;
+      let firstLoad2 = true;
       let approvedJobs: Job[] = [];
       let employerJobs: Job[] = [];
       
@@ -48,17 +61,23 @@ export function JobProvider({ children }: { children: ReactNode }) {
         }
         const unique = Array.from(uniqueItems.values());
         setJobs(unique.sort((a,b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
+        if (firstLoad1 && firstLoad2) {
+          setJobsLoading(false);
+          setJobsError(null);
+        }
       };
 
       const unsub1 = onSnapshot(q1, (snapshot) => {
         approvedJobs = snapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data(), createdAt: docSnap.data().createdAt?.toDate().toISOString() || new Date().toISOString() } as Job));
+        firstLoad1 = false;
         updateJobs();
-      }, console.error);
+      }, (err) => { console.error(err); setJobsError(err.message); setJobsLoading(false); });
 
       const unsub2 = onSnapshot(q2, (snapshot) => {
         employerJobs = snapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data(), createdAt: docSnap.data().createdAt?.toDate().toISOString() || new Date().toISOString() } as Job));
+        firstLoad2 = false;
         updateJobs();
-      }, console.error);
+      }, (err) => { console.error(err); setJobsError(err.message); setJobsLoading(false); });
 
       return () => { unsub1(); unsub2(); };
     } else {
@@ -69,10 +88,11 @@ export function JobProvider({ children }: { children: ReactNode }) {
           fetchedJobs.push({ id: docSnap.id, ...docSnap.data(), createdAt: docSnap.data().createdAt?.toDate().toISOString() || new Date().toISOString() } as Job);
         });
         setJobs(fetchedJobs.sort((a,b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
-      }, console.error);
+        setJobsLoading(false);
+      }, (err) => { console.error(err); setJobsError(err.message); setJobsLoading(false); });
       return () => unsubscribe();
     }
-  }, [user, profile]);
+  }, [user, profile, authLoading]);
 
   useEffect(() => {
     if (!user) {
@@ -133,7 +153,7 @@ export function JobProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <JobContext.Provider value={{ jobs, savedJobIds, addJob, updateJobStatus, editJob, deleteJob, toggleSavedJob }}>
+    <JobContext.Provider value={{ jobs, savedJobIds, jobsLoading, jobsError, addJob, updateJobStatus, editJob, deleteJob, toggleSavedJob }}>
       {children}
     </JobContext.Provider>
   );

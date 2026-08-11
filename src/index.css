@@ -1,6 +1,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --color-sira-blue: #0B2C5F;
   --color-sira-orange: #FF7A00;
@@ -13,4 +15,8 @@ body {
   font-family: var(--font-sans);
   background-color: var(--color-sira-bg);
   color: #1A202C;
+}
+
+.dark body {
+  background-color: #111827;
 }

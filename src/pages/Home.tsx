@@ -3,24 +3,32 @@ import { Link } from 'react-router-dom';
 import { useJobs } from '../context/JobContext';
 import { JobCard } from '../components/JobCard';
 import { AlertModal } from '../components/AlertModal';
-import { Zap, Search, Bell, ChevronDown } from 'lucide-react';
+import { Zap, Search, Bell, ChevronDown, Loader2, AlertCircle } from 'lucide-react';
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 
 import { JobCategory } from '../types';
+import { isJobExpired, parseSalary } from '../lib/utils';
 
 export function Home() {
-  const { jobs } = useJobs();
+  const { jobs, jobsLoading, jobsError } = useJobs();
   const [seeding, setSeeding] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<JobCategory | 'All'>('All');
   const [dateFilter, setDateFilter] = useState<'Any' | '24h' | 'Week' | 'Month'>('Any');
+  const [salaryRange, setSalaryRange] = useState<{ min: string; max: string }>({ min: '', max: '' });
+  const [showExpired, setShowExpired] = useState(false);
   const [isAlertModalOpen, setIsAlertModalOpen] = useState(false);
   
   const approvedJobs = jobs.filter(j => j.status === 'Approved');
 
   const filteredJobs = useMemo(() => {
     let result = approvedJobs;
+
+    // Filter out expired jobs unless explicitly shown
+    if (!showExpired) {
+      result = result.filter(job => !isJobExpired(job.deadline));
+    }
 
     // Apply specific category filter
     if (categoryFilter !== 'All') {
@@ -42,6 +50,17 @@ export function Home() {
       });
     }
 
+    // Apply salary range filter
+    if (salaryRange.min || salaryRange.max) {
+      const min = salaryRange.min ? parseFloat(salaryRange.min) : 0;
+      const max = salaryRange.max ? parseFloat(salaryRange.max) : Infinity;
+      result = result.filter(job => {
+        const salary = parseSalary(job.salary);
+        if (salary === null) return true; // keep jobs without salary
+        return salary >= min && salary <= max;
+      });
+    }
+
     // Apply search query
     if (searchQuery.trim()) {
       const lowerQuery = searchQuery.toLowerCase();
@@ -54,7 +73,7 @@ export function Home() {
     }
     
     return result;
-  }, [approvedJobs, searchQuery, categoryFilter, dateFilter]);
+  }, [approvedJobs, searchQuery, categoryFilter, dateFilter, salaryRange, showExpired]);
 
   const handleSeedJobs = async () => {
     setSeeding(true);
@@ -157,25 +176,30 @@ What we're looking for:
         <button 
           onClick={handleSeedJobs}
           disabled={seeding}
-          className="absolute -top-4 right-0 text-gray-500 hover:text-[--color-sira-orange] transition-colors"
-          title="Seed Jobs Debug"
+          className="absolute -top-4 right-0 flex items-center gap-1.5 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 px-3 py-1.5 rounded-full text-xs font-medium hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-sira-orange transition-colors disabled:opacity-50"
+          title="Generate 5 demo jobs"
         >
-          <Zap size={20} className={seeding ? "animate-pulse" : ""} />
+          <Zap size={14} className={seeding ? "animate-pulse" : ""} />
+          {seeding ? "Seeding..." : "Seed Jobs"}
         </button>
         <div>
-          <h1 className="text-[3rem] md:text-6xl font-extrabold text-[--color-sira-blue] leading-tight mb-6 tracking-tight">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-sira-blue/5 dark:bg-sira-blue/20 border border-sira-blue/15 dark:border-sira-blue/40 rounded-full text-sira-blue dark:text-blue-300 text-sm font-semibold mb-6">
+            <Zap size={14} className="text-sira-orange" />
+            Ethiopia's Fastest Hiring Platform
+          </div>
+          <h1 className="text-[3rem] md:text-6xl font-extrabold text-sira-blue leading-tight mb-6 tracking-tight">
             Find Jobs.<br />
-            <span className="text-[--color-sira-orange]">Apply in Seconds.</span>
+            <span className="text-sira-orange">Apply in Seconds.</span>
           </h1>
-          <p className="text-xl md:text-2xl text-gray-500 leading-relaxed font-medium">
+          <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-400 leading-relaxed font-medium">
             Post jobs or apply instantly via Telegram. The fastest platform for the Ethiopian workforce.
           </p>
         </div>
         <div className="flex flex-col sm:flex-row justify-center gap-4 mt-4">
-          <a href="#featured-jobs" className="px-8 py-5 bg-[--color-sira-orange] text-black rounded-2xl font-bold text-lg shadow-[0_10px_25px_-5px_rgba(255,122,0,0.3)] hover:bg-[#E66E00] hover:scale-[1.02] transition-all">
+          <a href="#featured-jobs" className="px-8 py-5 bg-sira-orange text-black rounded-2xl font-bold text-lg shadow-[0_10px_25px_-5px_rgba(255,122,0,0.3)] hover:bg-[#E66E00] hover:scale-[1.02] transition-all">
             Browse Jobs
           </a>
-          <Link to="/employer/post" className="px-8 py-5 border-2 border-[--color-sira-blue] text-[--color-sira-blue] rounded-2xl font-bold text-lg hover:bg-gray-50 hover:scale-[1.02] transition-all">
+          <Link to="/employer/post" className="px-8 py-5 border-2 border-sira-blue text-sira-blue rounded-2xl font-bold text-lg hover:bg-gray-50 dark:hover:bg-gray-800 hover:scale-[1.02] transition-all">
             Post a Job
           </Link>
         </div>
@@ -195,12 +219,12 @@ What we're looking for:
               placeholder="Search by job title, company, or location..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-14 pr-6 py-4 bg-white border border-gray-200 rounded-2xl shadow-sm text-lg focus:outline-none focus:ring-2 focus:ring-[--color-sira-blue] focus:border-transparent transition-all"
+              className="w-full pl-14 pr-6 py-4 bg-white dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100 dark:placeholder-gray-400 text-gray-900 placeholder-gray-400 border border-gray-300 rounded-2xl shadow-sm text-lg focus:outline-none focus:ring-2 focus:ring-sira-blue focus:border-transparent transition-all"
             />
           </div>
           <button 
             onClick={() => setIsAlertModalOpen(true)}
-            className="flex items-center justify-center gap-2 px-6 py-4 bg-blue-50 text-[--color-sira-blue] border border-blue-100 font-bold rounded-2xl shadow-sm hover:bg-blue-100 transition-colors whitespace-nowrap"
+            className="flex items-center justify-center gap-2 px-6 py-4 bg-blue-50 dark:bg-blue-900/20 text-sira-blue border border-blue-100 dark:border-blue-800 font-bold rounded-2xl shadow-sm hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors whitespace-nowrap"
           >
             <Bell size={20} />
             <span className="hidden sm:inline">Alert Me</span>
@@ -211,15 +235,15 @@ What we're looking for:
         <div className="max-w-3xl mx-auto w-full mb-12 flex flex-col items-start gap-4">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between w-full gap-4">
             <div className="w-full overflow-x-auto hide-scrollbar pb-1">
-              <div className="flex items-center gap-1.5 border-b border-gray-100 min-w-max pb-2">
+              <div className="flex items-center gap-1.5 border-b border-gray-100 dark:border-gray-700 min-w-max pb-2">
                 {['All', 'Developers', 'Creatives', 'Finance', 'Marketing & Sales', 'Management', 'Operations', 'Other'].map((cat) => (
                   <button
                     key={cat}
                     onClick={() => setCategoryFilter(cat as JobCategory | 'All')}
                     className={`px-4 py-2 rounded-lg whitespace-nowrap text-sm font-semibold transition-all ${
                       categoryFilter === cat 
-                        ? 'bg-[#0B2C5F] text-white shadow-sm' 
-                        : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'
+                        ? 'bg-[#0B2C5F] text-white shadow-sm dark:bg-gray-200 dark:text-[#0B2C5F]' 
+                        : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900'
                     }`}
                   >
                     {cat}
@@ -232,37 +256,92 @@ What we're looking for:
                <select
                  value={dateFilter}
                  onChange={(e) => setDateFilter(e.target.value as 'Any' | '24h' | 'Week' | 'Month')}
-                 className="appearance-none bg-gray-50 border border-gray-200 text-gray-700 text-sm font-semibold rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0B2C5F] focus:border-transparent block w-full py-2.5 pl-4 pr-10 cursor-pointer hover:bg-gray-100 transition-colors"
+                 className="appearance-none bg-gray-50 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 border border-gray-200 text-gray-700 text-sm font-semibold rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0B2C5F] focus:border-transparent block w-full py-2.5 pl-4 pr-10 cursor-pointer hover:bg-gray-100 transition-colors"
                >
                  <option value="Any">Any time</option>
                  <option value="24h">Past 24 hours</option>
                  <option value="Week">Past week</option>
                  <option value="Month">Past month</option>
                </select>
-               <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
+               <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500 dark:text-gray-400">
                  <ChevronDown size={16} />
                </div>
             </div>
           </div>
+
+          {/* Salary Range Filter */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 w-full">
+            <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
+              <span className="font-medium">Salary range (ETB):</span>
+            </div>
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <input
+                type="number"
+                placeholder="Min"
+                value={salaryRange.min}
+                onChange={(e) => setSalaryRange({ ...salaryRange, min: e.target.value })}
+                className="w-24 px-3 py-2 bg-white dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100 dark:placeholder-gray-400 text-gray-900 placeholder-gray-400 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sira-blue transition-all"
+              />
+              <span className="text-gray-400 dark:text-gray-500">—</span>
+              <input
+                type="number"
+                placeholder="Max"
+                value={salaryRange.max}
+                onChange={(e) => setSalaryRange({ ...salaryRange, max: e.target.value })}
+                className="w-24 px-3 py-2 bg-white dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100 dark:placeholder-gray-400 text-gray-900 placeholder-gray-400 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sira-blue transition-all"
+              />
+            </div>
+            <button
+              onClick={() => setShowExpired(!showExpired)}
+              className={`text-sm font-medium px-3 py-1.5 rounded-lg transition-colors ${
+                showExpired
+                  ? 'bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-400 border border-yellow-200 dark:border-yellow-800'
+                  : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+              }`}
+              title="Include expired jobs in results"
+            >
+              Include Expired
+            </button>
+          </div>
         </div>
 
-        <div className="flex justify-between items-end mb-8 border-b border-gray-100 pb-4">
+        <div className="flex justify-between items-end mb-8 border-b border-gray-100 dark:border-gray-700 pb-4">
           <div>
-            <h2 className="text-2xl md:text-3xl font-extrabold text-[#0B2C5F] mb-1">Latest Opportunities</h2>
-            <p className="text-gray-500 font-medium">Curated roles from top companies</p>
+            <h2 className="text-2xl md:text-3xl font-extrabold text-[#0B2C5F] dark:text-white mb-1">Latest Opportunities</h2>
+            <p className="text-gray-500 dark:text-gray-400 font-medium">Curated roles from top companies</p>
           </div>
-          <p className="text-sm font-semibold text-[--color-sira-orange] hidden sm:block">{filteredJobs.length} jobs available</p>
+          <p className="text-sm font-semibold text-sira-orange hidden sm:block">{filteredJobs.length} jobs available</p>
         </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredJobs.length === 0 ? (
-            <p className="col-span-1 md:col-span-2 lg:col-span-3 text-gray-500 py-16 text-center bg-gray-50 rounded-3xl border border-dashed border-gray-200 font-medium text-lg">
-              {searchQuery ? `No jobs found matching "${searchQuery}"` : "No jobs available right now. Check back later!"}
-            </p>
-          ) : (
-             filteredJobs.map(job => <JobCard key={job.id} job={job} />)
-          )}
-        </div>
+
+        {jobsLoading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-5 animate-pulse">
+                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded mb-3"></div>
+                <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded mb-2"></div>
+                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded mb-3 w-3/4"></div>
+                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded mb-4"></div>
+                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded mb-2 w-1/2"></div>
+              </div>
+            ))}
+          </div>
+        ) : jobsError ? (
+          <div className="text-center py-16 bg-gray-50 dark:bg-gray-800 rounded-3xl border border-dashed border-gray-200 dark:border-gray-700">
+            <AlertCircle size={48} className="text-red-400 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Failed to load jobs</h3>
+            <p className="text-gray-500 dark:text-gray-400 mb-4">{jobsError}</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredJobs.length === 0 ? (
+              <p className="col-span-1 md:col-span-2 lg:col-span-3 text-gray-500 dark:text-gray-400 py-16 text-center bg-gray-50 dark:bg-gray-800 rounded-3xl border border-dashed border-gray-200 dark:border-gray-700 font-medium text-lg">
+                {searchQuery ? `No jobs found matching "${searchQuery}"` : "No jobs available right now. Check back later!"}
+              </p>
+            ) : (
+              filteredJobs.map(job => <JobCard key={job.id} job={job} />)
+            )}
+          </div>
+        )}
       </section>
       
       <AlertModal 

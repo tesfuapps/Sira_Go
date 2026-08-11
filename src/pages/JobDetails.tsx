@@ -12,7 +12,7 @@ export function JobDetails() {
     return (
       <div className="text-center py-20">
         <h2 className="text-2xl font-bold text-gray-900">Job not found</h2>
-        <Link to="/" className="text-[--color-sira-blue] hover:underline mt-4 inline-block">Return Home</Link>
+        <Link to="/" className="text-sira-blue hover:underline mt-4 inline-block">Return Home</Link>
       </div>
     );
   }
@@ -33,7 +33,7 @@ export function JobDetails() {
     if (navigator.share) {
       navigator.share({
         title: job.title,
-        text: `Check out this job on SiraHub: ${job.title} at ${job.company}`,
+        text: `Check out this job on Sira Go: ${job.title} at ${job.company}`,
         url: url,
       }).catch((error) => console.log('Error sharing:', error));
     } else {
@@ -44,18 +44,18 @@ export function JobDetails() {
 
   return (
     <div className="max-w-3xl mx-auto py-8">
-      <Link to="/" className="inline-flex items-center gap-2 text-gray-500 hover:text-[--color-sira-blue] mb-8 transition-colors">
+      <Link to="/" className="inline-flex items-center gap-2 text-gray-500 hover:text-sira-blue mb-8 transition-colors">
         <ArrowLeft size={18} /> Back to jobs
       </Link>
       
-      <div className="bg-white rounded-[32px] p-8 md:p-12 shadow-[0_4px_30px_rgba(0,0,0,0.03)] border border-gray-50">
+      <div className="bg-white/85 dark:bg-gray-800/85 backdrop-blur-xl rounded-[32px] p-8 md:p-12 shadow-[0_12px_40px_rgba(0,0,0,0.06)] border border-white/60 dark:border-gray-700/80">
         <div className="mb-8 pb-8 border-b border-gray-100">
           <div className="flex justify-between items-start gap-4 mb-4">
             <h1 className="text-3xl md:text-4xl font-extrabold text-[#0B2C5F] shrink">{job.title}</h1>
             <div className="flex items-center gap-2">
               <button 
                 onClick={handleShare}
-                className="relative group p-3 rounded-full shrink-0 transition-colors bg-gray-50 text-gray-400 hover:text-[--color-sira-blue] hover:bg-blue-50"
+                className="relative group p-3 rounded-full shrink-0 transition-colors bg-gray-50 text-gray-500 hover:text-sira-blue hover:bg-blue-50 dark:bg-gray-700 dark:text-gray-400 dark:hover:bg-gray-600"
                 aria-label="Share this job"
               >
                 <Share2 size={24} />
@@ -67,7 +67,7 @@ export function JobDetails() {
 
               <button 
                 onClick={() => toggleSavedJob(job.id)}
-                className={`relative group p-3 rounded-full shrink-0 transition-colors ${savedJobIds.includes(job.id) ? 'bg-[--color-sira-orange]/10 text-[--color-sira-orange] hover:bg-[--color-sira-orange]/20' : 'bg-gray-50 text-gray-400 hover:bg-gray-100'}`}
+                className={`relative group p-3 rounded-full shrink-0 transition-colors ${savedJobIds.includes(job.id) ? 'bg-sira-orange/10 text-sira-orange hover:bg-sira-orange/20' : 'bg-gray-50 text-gray-500 hover:bg-gray-100 dark:bg-gray-700 dark:text-gray-400 dark:hover:bg-gray-600'}`}
                 aria-label={savedJobIds.includes(job.id) ? "Remove from bookmarks" : "Save this job"}
               >
                 <Bookmark size={24} fill={savedJobIds.includes(job.id) ? 'currentColor' : 'none'} />
@@ -80,7 +80,7 @@ export function JobDetails() {
           </div>
           <div className="flex flex-wrap items-center gap-6 text-gray-600">
             <div className="flex items-center gap-2 font-medium text-gray-900">
-              <Building2 size={18} className="text-[--color-sira-blue]" />
+              <Building2 size={18} className="text-sira-blue" />
               <span>{job.company}</span>
             </div>
             <div className="flex items-center gap-2">
@@ -93,21 +93,21 @@ export function JobDetails() {
                 <span>{job.salary}</span>
               </div>
             )}
-            <div className="flex items-center gap-2 text-[--color-sira-orange]">
+            <div className="flex items-center gap-2 text-sira-orange">
               <Calendar size={18} />
               <span className="font-medium">Deadline: {new Date(job.deadline).toLocaleDateString()}</span>
             </div>
           </div>
         </div>
 
-        <div className="prose prose-gray max-w-none mb-12">
-          <h3 className="text-xl font-bold text-gray-900 mb-4">Job Description</h3>
-          <p className="whitespace-pre-wrap text-gray-600 leading-relaxed">{job.description}</p>
+        <div className="prose prose-gray max-w-none mb-12 dark:prose-dark">
+          <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">Job Description</h3>
+          <p className="whitespace-pre-wrap text-gray-600 dark:text-gray-300 leading-relaxed">{job.description}</p>
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-4 items-center justify-between p-6 bg-blue-50/50 rounded-2xl border border-blue-100">
+        <div className="flex flex-col sm:flex-row gap-4 items-center justify-between p-6 bg-blue-50/50 rounded-2xl border border-blue-100 dark:border-blue-800">
           <div>
-            <h4 className="font-semibold text-[--color-sira-blue]">Ready to apply?</h4>
+            <h4 className="font-semibold text-sira-blue">Ready to apply?</h4>
             <p className="text-sm text-gray-600">
               {job.applyMethod.type === 'telegram' ? 'Click below to start a direct chat with HR.' : 
                job.applyMethod.type === 'phone' ? 'Call the employer directly to apply.' :
@@ -116,7 +116,7 @@ export function JobDetails() {
           </div>
           <button 
             onClick={handleApply}
-            className="w-full sm:w-auto px-8 py-4 bg-[--color-sira-blue] text-black rounded-full font-bold hover:bg-[#082046] transition-colors shadow-lg flex items-center justify-center gap-2"
+            className="w-full sm:w-auto px-8 py-4 bg-sira-blue text-white rounded-full font-bold hover:bg-[#082046] transition-colors shadow-lg flex items-center justify-center gap-2"
           >
             {job.applyMethod.type === 'telegram' && <Send size={18} />}
             Apply Now

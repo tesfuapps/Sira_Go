@@ -25,7 +25,7 @@ export function Profile() {
   if (!user || !profile) {
     return (
       <div className="flex flex-col items-center justify-center py-20">
-        <Loader2 size={48} className="animate-spin text-[--color-sira-blue] mb-4" />
+        <Loader2 size={48} className="animate-spin text-sira-blue mb-4" />
         <p className="text-gray-500 font-medium">Loading profile...</p>
       </div>
     );
@@ -56,24 +56,24 @@ export function Profile() {
 
   return (
     <div className="max-w-3xl mx-auto py-8">
-      <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+      <div className="bg-white/85 dark:bg-gray-800/85 backdrop-blur-xl rounded-3xl shadow-[0_12px_40px_rgba(0,0,0,0.06)] border border-white/60 dark:border-gray-700/80 overflow-hidden">
         {/* Profile Header Background */}
-        <div className="h-32 bg-gradient-to-r from-[--color-sira-blue] to-[#1a4b9c]"></div>
+        <div className="h-32 bg-gradient-to-r from-sira-blue to-[#1a4b9c]"></div>
         
         <div className="px-8 pb-8">
           {/* Avatar & Basic Info */}
           <div className="relative flex justify-between items-end -mt-16 mb-8">
             <div className="flex items-end gap-5">
               <div className="w-32 h-32 rounded-full border-4 border-white bg-gray-50 shadow-md flex items-center justify-center p-2 overflow-hidden bg-white">
-                <div className="w-full h-full rounded-full bg-blue-50 flex items-center justify-center text-[--color-sira-blue]">
+                <div className="w-full h-full rounded-full bg-blue-50 flex items-center justify-center text-sira-blue">
                    <User size={48} />
                 </div>
               </div>
               <div className="pb-2">
-                <h1 className="text-2xl font-extrabold text-gray-900">
+                <h1 className="text-2xl font-extrabold text-gray-900 dark:text-white">
                   {profile.displayName || 'User'}
                 </h1>
-                <p className="text-gray-500 font-medium flex items-center gap-1.5 mt-1">
+                <p className="text-gray-500 dark:text-gray-400 font-medium flex items-center gap-1.5 mt-1">
                   <span className="capitalize">{profile.role}</span> Account
                 </p>
               </div>
@@ -93,7 +93,7 @@ export function Profile() {
               className={`px-6 py-2.5 rounded-full font-bold transition-all border ${
                 isEditing 
                   ? 'bg-gray-100 text-gray-700 hover:bg-gray-200 border-transparent' 
-                  : 'bg-white border-gray-200 text-[--color-sira-blue] hover:border-[--color-sira-blue] shadow-sm'
+                  : 'bg-white border-gray-200 text-sira-blue hover:border-sira-blue shadow-sm'
               }`}
             >
               {isEditing ? 'Cancel Edit' : 'Edit Profile'}
@@ -102,8 +102,8 @@ export function Profile() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="md:col-span-2">
-              <div className="bg-gray-50/50 rounded-2xl p-6 border border-gray-100">
-                <h3 className="text-lg font-bold text-gray-900 mb-6">Personal Information</h3>
+              <div className="bg-gray-50/50 dark:bg-gray-700/50 rounded-2xl p-6 border border-gray-100 dark:border-gray-600">
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6">Personal Information</h3>
                 
                 {isEditing ? (
                   <form onSubmit={handleSubmit} className="space-y-5">
@@ -113,7 +113,7 @@ export function Profile() {
                         type="text" 
                         value={formData.displayName}
                         onChange={(e) => setFormData({...formData, displayName: e.target.value})}
-                        className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[--color-sira-blue] focus:border-transparent transition-all" 
+                        className="w-full px-4 py-2.5 rounded-xl bg-white text-gray-900 border border-gray-300 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-sira-blue focus:border-transparent transition-all dark:bg-gray-800 dark:text-gray-100 dark:border-gray-600 dark:placeholder-gray-500" 
                         placeholder="E.g. Abebe Kebede"
                         maxLength={50}
                       />
@@ -124,7 +124,7 @@ export function Profile() {
                         type="tel" 
                         value={formData.phone}
                         onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                        className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[--color-sira-blue] focus:border-transparent transition-all" 
+                        className="w-full px-4 py-2.5 rounded-xl bg-white text-gray-900 border border-gray-300 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-sira-blue focus:border-transparent transition-all dark:bg-gray-800 dark:text-gray-100 dark:border-gray-600 dark:placeholder-gray-500" 
                         placeholder="E.g. +251 911 234 567"
                         maxLength={20}
                       />
@@ -138,7 +138,7 @@ export function Profile() {
                         value={profile.email}
                         readOnly
                         disabled
-                        className="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-gray-100 text-gray-500 cursor-not-allowed" 
+                        className="w-full px-4 py-2.5 rounded-xl border border-gray-300 bg-gray-100 text-gray-500 cursor-not-allowed dark:border-gray-600 dark:bg-gray-700 dark:text-gray-400" 
                       />
                     </div>
 
@@ -146,7 +146,7 @@ export function Profile() {
                       <button 
                         type="submit" 
                         disabled={isSaving}
-                        className="w-full py-3.5 bg-[--color-sira-orange] text-black rounded-xl font-bold hover:bg-[#E66E00] transition-colors shadow-sm flex items-center justify-center gap-2"
+                        className="w-full py-3.5 bg-sira-orange text-black rounded-xl font-bold hover:bg-[#E66E00] transition-colors shadow-sm flex items-center justify-center gap-2"
                       >
                         {isSaving ? <Loader2 size={18} className="animate-spin" /> : null}
                         Save Changes
@@ -156,22 +156,22 @@ export function Profile() {
                 ) : (
                   <div className="space-y-6">
                     <div className="flex items-start gap-3">
-                      <div className="p-2 bg-blue-50/50 rounded-lg text-blue-600 mt-0.5">
+                      <div className="p-2 bg-blue-50/50 dark:bg-blue-900/20 rounded-lg text-blue-600 dark:text-blue-400 mt-0.5">
                         <Mail size={18} />
                       </div>
                       <div>
-                        <p className="text-sm font-semibold text-gray-500">Email Address</p>
-                        <p className="font-medium text-gray-900 mt-1">{profile.email}</p>
+                        <p className="text-sm font-semibold text-gray-500 dark:text-gray-400">Email Address</p>
+                        <p className="font-medium text-gray-900 dark:text-white mt-1">{profile.email}</p>
                       </div>
                     </div>
                     
                     <div className="flex items-start gap-3">
-                      <div className="p-2 bg-blue-50/50 rounded-lg text-blue-600 mt-0.5">
+                      <div className="p-2 bg-blue-50/50 dark:bg-blue-900/20 rounded-lg text-blue-600 dark:text-blue-400 mt-0.5">
                         <Phone size={18} />
                       </div>
                       <div>
-                        <p className="text-sm font-semibold text-gray-500">Phone Number</p>
-                        <p className="font-medium text-gray-900 mt-1">{profile.phone || <span className="text-gray-400 italic">Not set</span>}</p>
+                        <p className="text-sm font-semibold text-gray-500 dark:text-gray-400">Phone Number</p>
+                        <p className="font-medium text-gray-900 dark:text-white mt-1">{profile.phone || <span className="text-gray-400 italic">Not set</span>}</p>
                       </div>
                     </div>
 
@@ -187,7 +187,7 @@ export function Profile() {
                   <Award size={100} />
                 </div>
                 <h3 className="font-bold text-lg mb-2 relative z-10 flex items-center gap-2">
-                  <Award size={20} className="text-[--color-sira-orange]" />
+                  <Award size={20} className="text-sira-orange" />
                   Account Status
                 </h3>
                 <div className="mt-4 space-y-3 relative z-10">

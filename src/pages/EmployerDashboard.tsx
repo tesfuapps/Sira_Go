@@ -1,9 +1,10 @@
 import React, { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, Edit2, Trash2, Zap } from 'lucide-react';
+import { Plus, Edit2, Trash2, Zap, Loader2, AlertCircle } from 'lucide-react';
 import { useJobs } from '../context/JobContext';
 import { useAuth } from '../context/AuthContext';
 import { JobStatus, Job } from '../types';
+import { isJobExpired } from '../lib/utils';
 
 function StatusBadge({ status }: { status: JobStatus }) {
   const colors = {
@@ -20,7 +21,7 @@ function StatusBadge({ status }: { status: JobStatus }) {
 }
 
 export function EmployerDashboard() {
-  const { jobs, deleteJob, addJob } = useJobs();
+  const { jobs, jobsLoading, jobsError, deleteJob, addJob } = useJobs();
   const { user, profile } = useAuth();
   const [seeding, setSeeding] = useState(false);
   const [filter, setFilter] = useState<'All' | JobStatus>('All');
@@ -129,17 +130,17 @@ What we're looking for:
     <div className="space-y-8">
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
         <div>
-          <h1 className="text-2xl font-bold text-[--color-sira-blue]">Employer Dashboard</h1>
+          <h1 className="text-2xl font-bold text-sira-blue">Employer Dashboard</h1>
           <p className="text-gray-500 text-sm mt-1">Manage your job postings</p>
         </div>
         
         <div className="flex items-center gap-3">
-          <div className="bg-gray-100 p-1 rounded-full flex text-sm font-medium hidden md:flex">
+          <div className="bg-gray-100 dark:bg-gray-700 p-1 rounded-full flex text-sm font-medium hidden md:flex">
             {['All', 'Approved', 'Pending', 'Rejected'].map((status) => (
               <button
                 key={status}
                 onClick={() => setFilter(status as 'All' | JobStatus)}
-                className={`px-4 py-1.5 rounded-full transition-all ${filter === status ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-900'}`}
+                className={`px-4 py-1.5 rounded-full transition-all ${filter === status ? 'bg-white dark:bg-gray-200 dark:text-[#0B2C5F] shadow-sm text-gray-900' : 'text-gray-500 dark:text-gray-300 hover:text-gray-900'}`}
               >
                 {status}
               </button>
@@ -149,7 +150,7 @@ What we're looking for:
           <button 
             onClick={handleSeedJobs}
             disabled={seeding}
-            className="flex items-center gap-2 bg-gray-100 text-gray-700 px-5 py-2.5 rounded-full font-medium hover:bg-gray-200 transition-colors disabled:opacity-50"
+            className="flex items-center gap-2 bg-gray-100 dark:bg-gray-700 dark:text-gray-300 text-gray-700 px-5 py-2.5 rounded-full font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors disabled:opacity-50"
             title="Generate 5 random test jobs instantly"
           >
             <Zap size={18} className={seeding ? "animate-pulse" : ""} />
@@ -158,7 +159,7 @@ What we're looking for:
           
           <Link 
             to="/employer/post" 
-            className="flex items-center gap-2 bg-[--color-sira-orange] text-black px-5 py-2.5 rounded-full font-medium hover:bg-[#E66E00] transition-colors"
+            className="flex items-center gap-2 bg-sira-orange text-black px-5 py-2.5 rounded-full font-medium hover:bg-[#E66E00] transition-colors"
           >
             <Plus size={18} />
             Post New Job
@@ -166,40 +167,60 @@ What we're looking for:
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm dark:shadow-none border border-gray-100 dark:border-gray-700 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-gray-50 border-b border-gray-100 text-gray-500 text-sm">
+              <tr className="bg-gray-50 dark:bg-gray-700 border-b border-gray-100 dark:border-gray-600 text-gray-500 dark:text-gray-300 text-sm">
                 <th className="font-medium p-4 pl-6">Job Title</th>
                 <th className="font-medium p-4">Posted Date</th>
                 <th className="font-medium p-4">Status</th>
                 <th className="font-medium p-4 pr-6 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
-              {myJobs.length === 0 ? (
+            <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+              {jobsLoading ? (
                 <tr>
-                  <td colSpan={4} className="p-8 text-center text-gray-500">
-                    No jobs posted yet. <Link to="/employer/post" className="text-[--color-sira-blue] hover:underline">Post your first job</Link>.
+                  <td colSpan={4} className="p-8 text-center">
+                    <Loader2 size={32} className="animate-spin text-sira-blue mx-auto" />
+                  </td>
+                </tr>
+              ) : jobsError ? (
+                <tr>
+                  <td colSpan={4} className="p-8 text-center">
+                    <div className="flex items-center justify-center gap-2 text-red-600 dark:text-red-400">
+                      <AlertCircle size={20} />
+                      <span>{jobsError}</span>
+                    </div>
+                  </td>
+                </tr>
+              ) : myJobs.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className="p-8 text-center text-gray-500 dark:text-gray-400">
+                    No jobs posted yet. <Link to="/employer/post" className="text-sira-blue hover:underline">Post your first job</Link>.
                   </td>
                 </tr>
               ) : (
                 myJobs.map(job => (
-                  <tr key={job.id} className="hover:bg-gray-50/50 transition-colors">
-                    <td className="p-4 pl-6 font-medium text-gray-900">{job.title}</td>
-                    <td className="p-4 text-gray-500 text-sm">{new Date(job.createdAt).toLocaleDateString()}</td>
+                  <tr key={job.id} className="hover:bg-gray-50/50 dark:hover:bg-gray-700/50 transition-colors">
+                    <td className="p-4 pl-6 font-medium text-gray-900 dark:text-white">
+                      {job.title}
+                      {isJobExpired(job.deadline) && (
+                        <span className="ml-2 px-2 py-0.5 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 text-xs rounded-full font-medium">Expired</span>
+                      )}
+                    </td>
+                    <td className="p-4 text-gray-500 dark:text-gray-400 text-sm">{new Date(job.createdAt).toLocaleDateString()}</td>
                     <td className="p-4">
                       <StatusBadge status={job.status} />
                     </td>
                     <td className="p-4 pr-6">
                       <div className="flex items-center justify-end gap-2">
-                        <Link to={`/employer/edit/${job.id}`} className="p-2 w-8 h-8 rounded-full text-gray-400 hover:text-[--color-sira-blue] hover:bg-blue-50 transition-colors flex items-center justify-center">
+                        <Link to={`/employer/edit/${job.id}`} className="p-2 w-8 h-8 rounded-full text-gray-500 hover:text-sira-blue hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors flex items-center justify-center">
                           <Edit2 size={16} />
                         </Link>
                         <button 
                           onClick={() => deleteJob(job.id)}
-                          className="p-2 w-8 h-8 rounded-full text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors flex items-center justify-center"
+                          className="p-2 w-8 h-8 rounded-full text-gray-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors flex items-center justify-center"
                         >
                           <Trash2 size={16} />
                         </button>

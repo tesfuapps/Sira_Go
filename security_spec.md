@@ -1,4 +1,4 @@
-# SiraHub Security Specification
+# Sira Go Security Specification
 
 ## 1. Data Invariants
 - A user profile must belong to the user attempting to access it (except for admins reading it).

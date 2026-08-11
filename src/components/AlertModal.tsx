@@ -3,19 +3,22 @@ import { X, Bell, Mail, Send } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { db } from '../lib/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { JobAlert, JobCategory } from '../types';
 
 interface AlertModalProps {
   isOpen: boolean;
   onClose: () => void;
   initialKeyword?: string;
+  initialCategory?: JobCategory | 'All';
 }
 
-export function AlertModal({ isOpen, onClose, initialKeyword = '' }: AlertModalProps) {
+export function AlertModal({ isOpen, onClose, initialKeyword = '', initialCategory = 'All' }: AlertModalProps) {
   const { user } = useAuth();
   const [keyword, setKeyword] = useState(initialKeyword);
   const [location, setLocation] = useState('');
   const [notifyVia, setNotifyVia] = useState<'email' | 'telegram'>('email');
   const [contact, setContact] = useState('');
+  const [category, setCategory] = useState<JobCategory | 'All'>(initialCategory);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (!isOpen) return null;
@@ -31,7 +34,7 @@ export function AlertModal({ isOpen, onClose, initialKeyword = '' }: AlertModalP
 
     setIsSubmitting(true);
     try {
-      const alertData: any = {
+      const alertData: Omit<JobAlert, 'id' | 'createdAt'> & { createdAt: any } = {
         userId: user.uid,
         keyword: keyword.trim(),
         notifyVia,
@@ -41,6 +44,10 @@ export function AlertModal({ isOpen, onClose, initialKeyword = '' }: AlertModalP
       
       if (location.trim()) {
         alertData.location = location.trim();
+      }
+
+      if (category !== 'All') {
+        alertData.category = category;
       }
 
       await addDoc(collection(db, 'alerts'), alertData);
@@ -63,7 +70,7 @@ export function AlertModal({ isOpen, onClose, initialKeyword = '' }: AlertModalP
       >
         <div className="p-6 border-b border-gray-100 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="p-2 bg-blue-50 rounded-full text-[--color-sira-blue]">
+            <div className="p-2 bg-blue-50 rounded-full text-sira-blue">
               <Bell size={20} />
             </div>
             <h3 className="text-lg font-bold text-gray-900">Create Job Alert</h3>
@@ -91,20 +98,27 @@ export function AlertModal({ isOpen, onClose, initialKeyword = '' }: AlertModalP
                   required
                   value={keyword}
                   onChange={(e) => setKeyword(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[--color-sira-blue] focus:bg-white transition-all"
+                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-sira-blue focus:bg-white transition-all"
                   placeholder="e.g. React Developer, Marketing Manager"
                 />
               </div>
 
               <div className="w-full">
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Location (Optional)</label>
-                <input 
-                  type="text" 
-                  value={location}
-                  onChange={(e) => setLocation(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[--color-sira-blue] focus:bg-white transition-all"
-                  placeholder="e.g. Addis Ababa, Remote"
-                />
+                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Category</label>
+                <select
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value as JobCategory | 'All')}
+                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-sira-blue focus:border-transparent transition-all"
+                >
+                  <option value="All">All Categories</option>
+                  <option value="Developers">Developers</option>
+                  <option value="Creatives">Creatives</option>
+                  <option value="Finance">Finance</option>
+                  <option value="Marketing & Sales">Marketing & Sales</option>
+                  <option value="Management">Management</option>
+                  <option value="Operations">Operations</option>
+                  <option value="Other">Other</option>
+                </select>
               </div>
 
               <div className="w-full">
@@ -140,15 +154,33 @@ export function AlertModal({ isOpen, onClose, initialKeyword = '' }: AlertModalP
                   required
                   value={contact}
                   onChange={(e) => setContact(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[--color-sira-blue] focus:bg-white transition-all"
+                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-sira-blue focus:bg-white transition-all"
                   placeholder={notifyVia === 'email' ? 'name@example.com' : '@username or +251...'}
                 />
+              </div>
+
+              <div className="w-full">
+                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Category</label>
+                <select
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value as JobCategory | 'All')}
+                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-sira-blue focus:border-transparent transition-all"
+                >
+                  <option value="All">All Categories</option>
+                  <option value="Developers">Developers</option>
+                  <option value="Creatives">Creatives</option>
+                  <option value="Finance">Finance</option>
+                  <option value="Marketing & Sales">Marketing & Sales</option>
+                  <option value="Management">Management</option>
+                  <option value="Operations">Operations</option>
+                  <option value="Other">Other</option>
+                </select>
               </div>
 
               <button 
                 type="submit" 
                 disabled={isSubmitting}
-                className="w-full py-3 bg-[--color-sira-blue] text-white rounded-xl font-bold mt-4 shadow-sm hover:bg-[#09224A] transition-colors disabled:opacity-50"
+                className="w-full py-3 bg-sira-blue text-white rounded-xl font-bold mt-4 shadow-sm hover:bg-[#09224A] transition-colors disabled:opacity-50"
               >
                 {isSubmitting ? 'Saving...' : 'Create Alert'}
               </button>

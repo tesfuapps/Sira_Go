@@ -4,7 +4,7 @@
   "entities": {
     "User": {
       "title": "User",
-      "description": "A user of SiraHub (admin, employer, or seeker)",
+      "description": "A user of Sira Go (admin, employer, or seeker)",
       "type": "object",
       "properties": {
         "email": { "type": "string" },

@@ -25,6 +25,7 @@ export interface JobAlert {
   userId: string;
   keyword: string;
   location?: string;
+  category?: JobCategory;
   notifyVia: 'email' | 'telegram';
   contact: string;
   createdAt: string;
