@@ -81,6 +81,7 @@ export function Home() {
     const companies = ["TechCorp", "Innovatech", "CloudServe", "DataSys", "WebDesign Co", "NextGen Solutions"];
     const locations = ["Addis Ababa", "Remote", "Hawassa", "Dire Dawa", "Mekelle", "Bahir Dar", "Adama"];
     
+    const categories: JobCategory[] = ['Developers', 'Creatives', 'Finance', 'Marketing & Sales', 'Management', 'Operations', 'Other'];
     const descriptions = [
       `We are looking for a highly skilled Software Engineer to join our core product team. You will be responsible for designing and implementing scalable backend services, optimizing API performance, and working closely with our frontend developers to deliver seamless user experiences.
 
@@ -147,6 +148,7 @@ What we're looking for:
         await addDoc(collection(db, 'jobs'), {
             title: titles[Math.floor(Math.random() * titles.length)],
             company: companies[Math.floor(Math.random() * companies.length)],
+            category: categories[Math.floor(Math.random() * categories.length)],
             location: locations[Math.floor(Math.random() * locations.length)],
             salary: `${Math.floor(Math.random() * 50 + 20)},000 ETB`,
             deadline: new Date(Date.now() + 1000 * 60 * 60 * 24 * (Math.floor(Math.random() * 30 + 10))).toISOString(),

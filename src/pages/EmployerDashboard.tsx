@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Plus, Edit2, Trash2, Zap, Loader2, AlertCircle } from 'lucide-react';
 import { useJobs } from '../context/JobContext';
 import { useAuth } from '../context/AuthContext';
-import { JobStatus, Job } from '../types';
+import { JobStatus, Job, JobCategory } from '../types';
 import { isJobExpired } from '../lib/utils';
 
 function StatusBadge({ status }: { status: JobStatus }) {
@@ -41,6 +41,7 @@ export function EmployerDashboard() {
     const companies = ["TechCorp", "Innovatech", "CloudServe", "DataSys", "WebDesign Co", "NextGen Solutions"];
     const locations = ["Addis Ababa", "Remote", "Hawassa", "Dire Dawa", "Mekelle", "Bahir Dar", "Adama"];
     
+    const categories: JobCategory[] = ['Developers', 'Creatives', 'Finance', 'Marketing & Sales', 'Management', 'Operations', 'Other'];
     const descriptions = [
       `We are looking for a highly skilled Software Engineer to join our core product team. You will be responsible for designing and implementing scalable backend services, optimizing API performance, and working closely with our frontend developers to deliver seamless user experiences.
 
@@ -107,6 +108,7 @@ What we're looking for:
         await addJob({
             title: titles[Math.floor(Math.random() * titles.length)],
             company: companies[Math.floor(Math.random() * companies.length)],
+            category: categories[Math.floor(Math.random() * categories.length)],
             location: locations[Math.floor(Math.random() * locations.length)],
             salary: `${Math.floor(Math.random() * 50 + 20)},000 ETB`,
             deadline: new Date(Date.now() + 1000 * 60 * 60 * 24 * (Math.floor(Math.random() * 30 + 10))).toISOString(),

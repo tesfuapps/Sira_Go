@@ -25,6 +25,18 @@ export function JobProvider({ children }: { children: ReactNode }) {
   const [jobsLoading, setJobsLoading] = useState(true);
   const [jobsError, setJobsError] = useState<string | null>(null);
 
+  const getCreatedAtIso = (createdAt: any) => {
+    if (createdAt && typeof createdAt.toDate === 'function') {
+      try {
+        return createdAt.toDate().toISOString();
+      } catch (e) {
+        return new Date().toISOString();
+      }
+    }
+    if (typeof createdAt === 'string') return createdAt;
+    return new Date().toISOString();
+  };
+
   useEffect(() => {
     if (authLoading) {
       setJobsLoading(true);
@@ -38,7 +50,7 @@ export function JobProvider({ children }: { children: ReactNode }) {
       const unsubscribe = onSnapshot(q, (snapshot) => {
         const fetchedJobs: Job[] = [];
         snapshot.docs.forEach(docSnap => {
-          fetchedJobs.push({ id: docSnap.id, ...docSnap.data(), createdAt: docSnap.data().createdAt?.toDate().toISOString() || new Date().toISOString() } as Job);
+          fetchedJobs.push({ id: docSnap.id, ...docSnap.data(), createdAt: getCreatedAtIso(docSnap.data().createdAt) } as Job);
         });
         setJobs(fetchedJobs.sort((a,b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
         setJobsLoading(false);
@@ -68,13 +80,13 @@ export function JobProvider({ children }: { children: ReactNode }) {
       };
 
       const unsub1 = onSnapshot(q1, (snapshot) => {
-        approvedJobs = snapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data(), createdAt: docSnap.data().createdAt?.toDate().toISOString() || new Date().toISOString() } as Job));
+        approvedJobs = snapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data(), createdAt: getCreatedAtIso(docSnap.data().createdAt) } as Job));
         firstLoad1 = false;
         updateJobs();
       }, (err) => { console.error(err); setJobsError(err.message); setJobsLoading(false); });
 
       const unsub2 = onSnapshot(q2, (snapshot) => {
-        employerJobs = snapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data(), createdAt: docSnap.data().createdAt?.toDate().toISOString() || new Date().toISOString() } as Job));
+        employerJobs = snapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data(), createdAt: getCreatedAtIso(docSnap.data().createdAt) } as Job));
         firstLoad2 = false;
         updateJobs();
       }, (err) => { console.error(err); setJobsError(err.message); setJobsLoading(false); });
@@ -85,7 +97,7 @@ export function JobProvider({ children }: { children: ReactNode }) {
       const unsubscribe = onSnapshot(q, (snapshot) => {
         const fetchedJobs: Job[] = [];
         snapshot.docs.forEach(docSnap => {
-          fetchedJobs.push({ id: docSnap.id, ...docSnap.data(), createdAt: docSnap.data().createdAt?.toDate().toISOString() || new Date().toISOString() } as Job);
+          fetchedJobs.push({ id: docSnap.id, ...docSnap.data(), createdAt: getCreatedAtIso(docSnap.data().createdAt) } as Job);
         });
         setJobs(fetchedJobs.sort((a,b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
         setJobsLoading(false);
