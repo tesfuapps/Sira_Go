@@ -75,6 +75,14 @@ export function Home() {
     return result;
   }, [approvedJobs, searchQuery, categoryFilter, dateFilter, salaryRange, showExpired]);
 
+  const handleResetFilters = () => {
+    setSearchQuery('');
+    setCategoryFilter('All');
+    setDateFilter('Any');
+    setSalaryRange({ min: '', max: '' });
+    setShowExpired(false);
+  };
+
   const handleSeedJobs = async () => {
     setSeeding(true);
     const titles = ["Frontend Developer", "Backend Engineer", "Product Manager", "Data Analyst", "UX Designer", "Marketing Specialist", "DevOps Engineer"];
@@ -336,9 +344,19 @@ What we're looking for:
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredJobs.length === 0 ? (
-              <p className="col-span-1 md:col-span-2 lg:col-span-3 text-gray-500 dark:text-gray-400 py-16 text-center bg-gray-50 dark:bg-gray-800 rounded-3xl border border-dashed border-gray-200 dark:border-gray-700 font-medium text-lg">
-                {searchQuery ? `No jobs found matching "${searchQuery}"` : "No jobs available right now. Check back later!"}
-              </p>
+              <div className="col-span-1 md:col-span-2 lg:col-span-3 py-16 text-center bg-gray-50/80 dark:bg-gray-800/80 backdrop-blur-md rounded-3xl border border-dashed border-gray-200 dark:border-gray-700 flex flex-col items-center justify-center gap-4">
+                <p className="text-gray-600 dark:text-gray-300 font-medium text-lg">
+                  {searchQuery || categoryFilter !== 'All' || dateFilter !== 'Any' || salaryRange.min || salaryRange.max ? `No jobs found matching your filters.` : "No jobs available right now. Check back later!"}
+                </p>
+                {(searchQuery || categoryFilter !== 'All' || dateFilter !== 'Any' || salaryRange.min || salaryRange.max || showExpired) && (
+                  <button
+                    onClick={handleResetFilters}
+                    className="px-6 py-2.5 bg-sira-blue text-white rounded-xl font-bold text-sm hover:bg-[#082046] transition-colors shadow-sm"
+                  >
+                    Reset All Filters
+                  </button>
+                )}
+              </div>
             ) : (
               filteredJobs.map(job => <JobCard key={job.id} job={job} />)
             )}

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Briefcase, Send, LogOut, User, Moon, Sun } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+import { useJobs } from '../context/JobContext';
 import { RoleSelectionModal } from './RoleSelectionModal';
 import { EmailLoginModal } from './EmailLoginModal';
 
@@ -17,6 +18,7 @@ export const Logo = ({ className = "w-8 h-8" }: { className?: string }) => (
 export function Header() {
   const { user, profile, signOut } = useAuth();
   const { darkMode, toggleDarkMode } = useTheme();
+  const { savedJobIds } = useJobs();
   const [showLoginModal, setShowLoginModal] = useState(false);
 
   return (
@@ -37,7 +39,14 @@ export function Header() {
             <Link to="/why-us" className="text-gray-600 dark:text-gray-300 hover:text-sira-blue transition-colors hidden md:block">Why Us?</Link>
 
             {user && profile?.role !== 'admin' && profile?.role !== 'employer' && (
-              <Link to="/saved" className="text-gray-600 dark:text-gray-300 hover:text-sira-blue transition-colors hidden sm:block">Saved Jobs</Link>
+              <Link to="/saved" className="relative text-gray-600 dark:text-gray-300 hover:text-sira-blue transition-colors hidden sm:flex items-center gap-1.5">
+                Saved Jobs
+                {savedJobIds.length > 0 && (
+                  <span className="px-1.5 py-0.2 bg-sira-orange text-black rounded-full text-xs font-bold">
+                    {savedJobIds.length}
+                  </span>
+                )}
+              </Link>
             )}
 
             {user && profile?.role !== 'admin' && profile?.role !== 'employer' && (
