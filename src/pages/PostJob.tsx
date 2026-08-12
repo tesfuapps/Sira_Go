@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Loader2 } from 'lucide-react';
 import { useJobs } from '../context/JobContext';
 import { JobCategory } from '../types';
 
 export function PostJob() {
   const navigate = useNavigate();
   const { addJob } = useJobs();
+  const [submitting, setSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
     company: '',
@@ -18,22 +20,31 @@ export function PostJob() {
     applyMethodValue: '',
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    addJob({
-      title: formData.title,
-      company: formData.company,
-      location: formData.location,
-      category: formData.category,
-      salary: formData.salary || undefined,
-      deadline: formData.deadline,
-      description: formData.description,
-      applyMethod: {
-        type: formData.applyMethodType,
-        value: formData.applyMethodValue
-      }
-    });
-    navigate('/employer');
+    if (submitting) return;
+    setSubmitting(true);
+    try {
+      await addJob({
+        title: formData.title,
+        company: formData.company,
+        location: formData.location,
+        category: formData.category,
+        salary: formData.salary || undefined,
+        deadline: formData.deadline,
+        description: formData.description,
+        applyMethod: {
+          type: formData.applyMethodType,
+          value: formData.applyMethodValue
+        }
+      });
+      navigate('/employer');
+    } catch (err) {
+      console.error("Failed to post job:", err);
+      alert("Failed to post job. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -128,8 +139,9 @@ export function PostJob() {
           </div>
 
           <div className="pt-4 border-t border-gray-100 dark:border-gray-700">
-            <button type="submit" className="w-full py-4 bg-sira-orange text-black rounded-full font-bold text-lg hover:bg-[#E66E00] transition-colors shadow-md dark:hover:bg-[#E66E00]/80">
-              Submit Job
+            <button type="submit" disabled={submitting} className="w-full py-4 bg-sira-orange text-black rounded-full font-bold text-lg hover:bg-[#E66E00] transition-colors shadow-md dark:hover:bg-[#E66E00]/80 disabled:opacity-50 flex items-center justify-center gap-2">
+              {submitting && <Loader2 size={20} className="animate-spin" />}
+              {submitting ? 'Posting Job...' : 'Submit Job'}
             </button>
           </div>
         </form>

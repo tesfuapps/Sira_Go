@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { useJobs } from '../context/JobContext';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Loader2 } from 'lucide-react';
 import { JobCategory } from '../types';
 
 export function EditJob() {
@@ -40,25 +40,33 @@ export function EditJob() {
     }
   }, [id, jobs, navigate]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!id) return;
-    
-    editJob(id, {
-      title: formData.title,
-      company: formData.company,
-      category: formData.category,
-      location: formData.location,
-      salary: formData.salary || undefined,
-      deadline: formData.deadline,
-      description: formData.description,
-      applyMethod: {
-        type: formData.applyMethodType,
-        value: formData.applyMethodValue
-      }
-    });
-    
-    navigate(-1); // Go back to wherever they came from (AdminPanel or EmployerDashboard)
+    if (!id || submitting) return;
+    setSubmitting(true);
+    try {
+      await editJob(id, {
+        title: formData.title,
+        company: formData.company,
+        category: formData.category,
+        location: formData.location,
+        salary: formData.salary || undefined,
+        deadline: formData.deadline,
+        description: formData.description,
+        applyMethod: {
+          type: formData.applyMethodType,
+          value: formData.applyMethodValue
+        }
+      });
+      navigate(-1);
+    } catch (err) {
+      console.error("Failed to update job:", err);
+      alert("Failed to update job. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -159,8 +167,9 @@ export function EditJob() {
           </div>
 
           <div className="pt-4 border-t border-gray-100">
-            <button type="submit" className="w-full py-4 bg-sira-blue text-white rounded-full font-bold text-lg hover:bg-[#082046] transition-colors shadow-md">
-              Save Changes
+            <button type="submit" disabled={submitting} className="w-full py-4 bg-sira-blue text-white rounded-full font-bold text-lg hover:bg-[#082046] transition-colors shadow-md disabled:opacity-50 flex items-center justify-center gap-2">
+              {submitting && <Loader2 size={20} className="animate-spin" />}
+              {submitting ? 'Saving Changes...' : 'Save Changes'}
             </button>
           </div>
         </form>
