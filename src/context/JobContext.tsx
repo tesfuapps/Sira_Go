@@ -122,7 +122,7 @@ export function JobProvider({ children }: { children: ReactNode }) {
   }, [user]);
 
   const addJob = async (jobData: Omit<Job, 'id' | 'status' | 'employerId' | 'createdAt'>) => {
-    if (!user) return;
+    if (!user) throw new Error("You must be signed in to post a job.");
     const newDocId = doc(collection(db, 'jobs')).id;
     await setDoc(doc(db, 'jobs', newDocId), {
       ...jobData,

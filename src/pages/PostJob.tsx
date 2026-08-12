@@ -2,11 +2,13 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { useJobs } from '../context/JobContext';
+import { useAuth } from '../context/AuthContext';
 import { JobCategory } from '../types';
 
 export function PostJob() {
   const navigate = useNavigate();
   const { addJob } = useJobs();
+  const { user } = useAuth();
   const [submitting, setSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
@@ -22,6 +24,10 @@ export function PostJob() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!user) {
+      alert("Please sign in or create an employer account before posting a job.");
+      return;
+    }
     if (submitting) return;
     setSubmitting(true);
     try {
