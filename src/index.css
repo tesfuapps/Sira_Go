@@ -1,22 +1,47 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 @import "tailwindcss";
 
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-  --color-sira-blue: #0B2C5F;
+  --color-sira-blue: #2563EB;
   --color-sira-orange: #FF7A00;
-  --color-sira-bg: #F8FAFC;
+  --color-sira-gray: #808080;
+  --color-sira-bg: #0B0F19;
+  --color-sira-card: #111827;
+  --color-sira-border: #1F2937;
   
-  --font-sans: "Inter", system-ui, sans-serif;
+  --font-sans: "Plus Jakarta Sans", system-ui, sans-serif;
 }
 
 body {
   font-family: var(--font-sans);
   background-color: var(--color-sira-bg);
-  color: #1A202C;
+  color: #F8FAFC;
+  -webkit-font-smoothing: antialiased;
 }
 
-.dark body {
-  background-color: #111827;
+/* Custom smooth transitions & scrollbar */
+* {
+  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0B0F19;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #475569;
 }

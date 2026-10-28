@@ -130,10 +130,10 @@ What we're looking for:
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white dark:bg-[#111827] p-6 rounded-3xl shadow-sm border border-gray-100 dark:border-[#1F2937]">
         <div>
-          <h1 className="text-2xl font-bold text-sira-blue">Employer Dashboard</h1>
-          <p className="text-gray-500 text-sm mt-1">Manage your job postings</p>
+          <h1 className="text-2xl font-extrabold text-sira-blue dark:text-white">Employer Dashboard</h1>
+          <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">Manage your job postings</p>
         </div>
         
         <div className="flex items-center gap-3">

@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Briefcase, Send, LogOut, User, Moon, Sun } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Briefcase, Send, LogOut, User, Menu, X, Bookmark, Bell, Sun, Moon } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { useTheme } from '../context/ThemeContext';
 import { useJobs } from '../context/JobContext';
+import { useTheme } from '../context/ThemeContext';
 import { RoleSelectionModal } from './RoleSelectionModal';
-import { EmailLoginModal } from './EmailLoginModal';
 
 export const Logo = ({ className = "w-8 h-8" }: { className?: string }) => (
   <img
@@ -17,110 +16,182 @@ export const Logo = ({ className = "w-8 h-8" }: { className?: string }) => (
 
 export function Header() {
   const { user, profile, signOut } = useAuth();
-  const { darkMode, toggleDarkMode } = useTheme();
   const { savedJobIds } = useJobs();
-  const [showLoginModal, setShowLoginModal] = useState(false);
+  const { darkMode, toggleDarkMode } = useTheme();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const navigate = useNavigate();
 
   return (
-    <>
-      {showLoginModal && !user && <EmailLoginModal onClose={() => setShowLoginModal(false)} />}
-      <header className="sticky top-0 z-40 w-full bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 shadow-sm">
-        <div className="px-4 sm:px-6 md:px-12 h-[72px] flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2 shrink-0">
-            <Logo className="w-8 h-8 sm:w-9 sm:h-9" />
-            <span className="font-bold text-xl sm:text-2xl tracking-tight">
-              <span className="text-sira-blue">Sira</span>
-              <span className="text-sira-orange">Go</span>
-            </span>
-          </Link>
-          <nav className="flex items-center gap-3 sm:gap-6 text-sm font-medium">
-            <Link to="/" className="text-sira-blue dark:text-gray-300 hover:text-sira-blue/80 dark:hover:text-gray-200 transition-colors hidden sm:block">Jobs</Link>
-            <Link to="/how-it-works" className="text-gray-600 dark:text-gray-300 hover:text-sira-blue transition-colors hidden md:block">How it Works</Link>
-            <Link to="/why-us" className="text-gray-600 dark:text-gray-300 hover:text-sira-blue transition-colors hidden md:block">Why Us?</Link>
+    <header className="sticky top-0 z-50 w-full bg-[#0B0F19]/85 backdrop-blur-xl border-b border-[#1F2937] shadow-[0_4px_30px_rgba(0,0,0,0.4)]">
+      <div className="px-4 sm:px-6 md:px-12 h-[76px] flex items-center justify-between">
+        <Link to="/" className="flex items-center gap-2.5 shrink-0 group">
+          <Logo className="w-10 h-10 transition-transform group-hover:scale-105" />
+          <span className="font-extrabold text-xl sm:text-2xl tracking-tight text-white">
+            <span className="text-blue-500">Sira</span>
+            <span className="text-sira-orange">Go</span>
+          </span>
+        </Link>
 
-            {user && profile?.role !== 'admin' && profile?.role !== 'employer' && (
-              <Link to="/saved" className="relative text-gray-600 dark:text-gray-300 hover:text-sira-blue transition-colors hidden sm:flex items-center gap-1.5">
-                Saved Jobs
-                {savedJobIds.length > 0 && (
-                  <span className="px-1.5 py-0.2 bg-sira-orange text-black rounded-full text-xs font-bold">
-                    {savedJobIds.length}
-                  </span>
-                )}
+        {/* Desktop Navigation */}
+        <nav className="hidden md:flex items-center gap-8 text-sm font-semibold text-gray-300">
+          <Link to="/" className="hover:text-blue-400 transition-colors">Jobs</Link>
+          <Link to="/#categories" className="hover:text-blue-400 transition-colors">Categories</Link>
+          <Link to="/how-it-works" className="hover:text-blue-400 transition-colors">How it Works</Link>
+          <Link to="/why-us" className="hover:text-blue-400 transition-colors">Why Us</Link>
+
+          {user && profile?.role !== 'admin' && profile?.role !== 'employer' && (
+            <Link to="/saved" className="relative hover:text-blue-400 transition-colors flex items-center gap-1.5">
+              Saved
+              {savedJobIds.length > 0 && (
+                <span className="px-2 py-0.5 bg-sira-orange text-black rounded-full text-xs font-extrabold shadow-sm">
+                  {savedJobIds.length}
+                </span>
+              )}
+            </Link>
+          )}
+
+          {user && (profile?.role === 'employer' || profile?.role === 'admin') && (
+            <Link to="/employer" className="hover:text-blue-400 transition-colors">Dashboard</Link>
+          )}
+          
+          {user && profile?.role === 'admin' && (
+            <Link to="/admin" className="hover:text-blue-400 transition-colors">Admin</Link>
+          )}
+        </nav>
+
+        {/* Right Actions */}
+        <div className="hidden md:flex items-center gap-3">
+          <button
+            onClick={toggleDarkMode}
+            className="p-2.5 rounded-xl bg-gray-800/80 border border-gray-700/80 text-gray-300 hover:text-white transition-colors cursor-pointer"
+            title={darkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
+            aria-label="Toggle Theme"
+          >
+            {darkMode ? <Sun size={18} className="text-yellow-400" /> : <Moon size={18} />}
+          </button>
+
+          {user && (profile?.role === 'employer' || profile?.role === 'admin') && (
+            <Link to="/employer/post" className="bg-sira-orange text-black px-5 py-2.5 rounded-xl hover:bg-[#E66E00] transition-all transform hover:-translate-y-0.5 font-bold flex items-center gap-2 shadow-lg shadow-orange-500/20 whitespace-nowrap">
+              <Briefcase size={16} />
+              <span>Post a Job</span>
+            </Link>
+          )}
+
+          {!user && (
+            <>
+              <Link to="/login" className="text-gray-300 hover:text-white px-4 py-2 font-bold transition-colors">
+                Sign In
               </Link>
-            )}
-
-            {user && profile?.role !== 'admin' && profile?.role !== 'employer' && (
-              <Link to="/alerts" className="text-gray-600 dark:text-gray-300 hover:text-sira-blue transition-colors hidden sm:block">Alerts</Link>
-            )}
-
-            {user && (profile?.role === 'employer' || profile?.role === 'admin') && (
-              <Link to="/employer" className="text-gray-600 dark:text-gray-300 hover:text-sira-blue transition-colors hidden lg:block">Dashboard</Link>
-            )}
-            
-            {user && profile?.role === 'admin' && (
-              <Link to="/admin" className="text-gray-600 dark:text-gray-300 hover:text-sira-blue transition-colors hidden lg:block">Admin</Link>
-            )}
-
-            {user && (profile?.role === 'employer' || profile?.role === 'admin') && (
-              <Link to="/employer/post" className="bg-sira-orange text-black px-4 sm:px-5 py-2 sm:py-2.5 rounded-full hover:bg-[#E66E00] transition-colors font-semibold flex items-center gap-2 shadow-sm whitespace-nowrap">
-                <Briefcase size={16} className="hidden xs:block" />
-                <span>Post <span className="hidden xs:inline">a Job</span></span>
+              <Link to="/login" className="bg-blue-600 text-white px-6 py-2.5 rounded-xl hover:bg-blue-500 transition-all transform hover:-translate-y-0.5 font-bold shadow-lg shadow-blue-600/30 whitespace-nowrap">
+                Post a Job
               </Link>
-            )}
+            </>
+          )}
 
-            {user && (
-              <Link to="/profile" className="text-gray-500 dark:text-gray-300 hover:text-sira-blue transition-colors p-2" title="Profile">
-                <User size={20} />
+          {user && (
+            <div className="flex items-center gap-3">
+              <Link to="/profile" className="text-gray-300 hover:text-white p-2 rounded-xl bg-gray-800 border border-gray-700 transition-colors" title="Profile">
+                <User size={18} />
               </Link>
-            )}
+              <button onClick={signOut} className="text-gray-400 hover:text-red-400 p-2 rounded-xl bg-gray-800 border border-gray-700 transition-colors cursor-pointer" title="Sign out">
+                <LogOut size={18} />
+              </button>
+            </div>
+          )}
+        </div>
 
-            <button
-              onClick={toggleDarkMode}
-              className="text-gray-500 hover:text-sira-blue transition-colors p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
-              title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
-            >
-              {darkMode ? <Sun size={20} /> : <Moon size={20} />}
-            </button>
+        {/* Mobile Hamburger */}
+        <button 
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          className="md:hidden p-2.5 text-gray-300 hover:text-white rounded-xl bg-gray-800 border border-gray-700"
+        >
+          {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+        </button>
+      </div>
 
-            {user && (
-              <button onClick={signOut} className="text-gray-500 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors cursor-pointer p-2 pl-0" title="Sign out">
-                <LogOut size={20} />
+      {/* Mobile Menu Dropdown */}
+      {mobileMenuOpen && (
+        <div className="md:hidden bg-[#111827] border-b border-[#1F2937] p-6 space-y-4">
+          <Link to="/" onClick={() => setMobileMenuOpen(false)} className="block text-gray-200 font-semibold py-2">Jobs</Link>
+          <Link to="/how-it-works" onClick={() => setMobileMenuOpen(false)} className="block text-gray-200 font-semibold py-2">How it Works</Link>
+          <Link to="/why-us" onClick={() => setMobileMenuOpen(false)} className="block text-gray-200 font-semibold py-2">Why Us</Link>
+          {user && <Link to="/profile" onClick={() => setMobileMenuOpen(false)} className="block text-gray-200 font-semibold py-2">Profile</Link>}
+          <div className="pt-4 border-t border-gray-800 flex flex-col gap-3">
+            {!user ? (
+              <Link to="/login" onClick={() => setMobileMenuOpen(false)} className="w-full py-3 bg-blue-600 text-white rounded-xl font-bold text-center">
+                Sign In / Post a Job
+              </Link>
+            ) : (
+              <button onClick={() => { signOut(); setMobileMenuOpen(false); }} className="w-full py-3 bg-red-600/20 text-red-400 rounded-xl font-bold text-center">
+                Sign Out
               </button>
             )}
-          </nav>
+          </div>
         </div>
-      </header>
-    </>
+      )}
+    </header>
   );
 }
 
 export function Footer() {
   return (
-    <footer className="border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 flex flex-col md:flex-row items-center justify-between px-6 md:px-12 py-6 text-xs text-gray-500 dark:text-gray-400 font-medium tracking-wide mt-auto gap-4">
-      <div className="text-center md:text-left">
-        <span className="text-gray-900 font-bold">© 2024 SIRA GO.</span> THE FASTEST HIRING PLATFORM IN ETHIOPIA.
+    <footer className="border-t border-[#1F2937] bg-[#0B0F19] text-gray-400 font-medium py-12 px-6 md:px-12 mt-auto">
+      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
+        <div>
+          <div className="flex items-center gap-2.5 mb-4">
+            <Logo className="w-8 h-8" />
+            <span className="font-extrabold text-xl text-white">
+              <span className="text-blue-500">Sira</span>
+              <span className="text-sira-orange">Go</span>
+            </span>
+          </div>
+          <p className="text-sm text-gray-400">
+            The premier motion-first job marketplace connecting Ethiopian talent with top employers.
+          </p>
+        </div>
+
+        <div>
+          <h4 className="text-white font-bold text-sm mb-4 uppercase tracking-wider">Platform</h4>
+          <ul className="space-y-2 text-sm">
+            <li><Link to="/" className="hover:text-white transition-colors">Jobs</Link></li>
+            <li><Link to="/how-it-works" className="hover:text-white transition-colors">How it Works</Link></li>
+            <li><Link to="/why-us" className="hover:text-white transition-colors">Why Choose Us</Link></li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 className="text-white font-bold text-sm mb-4 uppercase tracking-wider">Employers</h4>
+          <ul className="space-y-2 text-sm">
+            <li><Link to="/employer/post" className="hover:text-white transition-colors">Post a Job</Link></li>
+            <li><Link to="/employer" className="hover:text-white transition-colors">Employer Dashboard</Link></li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 className="text-white font-bold text-sm mb-4 uppercase tracking-wider">Resources</h4>
+          <ul className="space-y-2 text-sm">
+            <li><a href="#" className="hover:text-white transition-colors">Help Center</a></li>
+            <li><a href="#" className="hover:text-white transition-colors flex items-center gap-1"><Send size={14} /> Telegram Channel</a></li>
+            <li><a href="#" className="hover:text-white transition-colors">Privacy Policy</a></li>
+            <li><a href="#" className="hover:text-white transition-colors">Terms of Service</a></li>
+          </ul>
+        </div>
       </div>
-      <ul className="flex flex-wrap justify-center items-center gap-4 sm:gap-6">
-        <li>
-          <Link to="/employer/post" className="text-sira-orange font-bold hover:underline flex items-center gap-1">
-            <Briefcase size={14} />
-            Post a Job
-          </Link>
-        </li>
-        <li><a href="#" className="hover:text-gray-900 transition-colors">Privacy</a></li>
-        <li><a href="#" className="hover:text-gray-900 transition-colors">Terms</a></li>
-        <li><a href="#" className="hover:text-gray-900 transition-colors flex items-center gap-1"><Send size={14} /> Telegram Channel</a></li>
-      </ul>
+
+      <div className="max-w-7xl mx-auto pt-8 border-t border-[#1F2937] flex flex-col sm:flex-row items-center justify-between text-xs text-gray-500 gap-4">
+        <p>© 2026 SIRA GO. ALL RIGHTS RESERVED. ETHIOPIA-FIRST HIRING.</p>
+        <p>BUILT FOR SPEED & PERFORMANCE IN ETB.</p>
+      </div>
     </footer>
   );
 }
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen flex flex-col bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+    <div className="min-h-screen flex flex-col bg-[#0B0F19] text-gray-100">
       <RoleSelectionModal />
       <Header />
-      <main className="flex-1 w-full p-6 md:p-10 mx-auto max-w-[1440px]">
+      <main className="flex-1 w-full p-4 sm:p-6 md:p-10 mx-auto max-w-[1440px]">
         {children}
       </main>
       <Footer />

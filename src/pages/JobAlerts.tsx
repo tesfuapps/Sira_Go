@@ -22,6 +22,22 @@ export function JobAlerts() {
       return;
     }
 
+    const isDemoMode = !!localStorage.getItem('sira_go_demo_user');
+    if (isDemoMode) {
+      const stored = localStorage.getItem(`sira_go_demo_alerts_${user.uid}`);
+      if (stored) {
+        try {
+          setAlerts(JSON.parse(stored));
+        } catch (e) {
+          setAlerts([]);
+        }
+      } else {
+        setAlerts([]);
+      }
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     const q = query(collection(db, 'alerts'), where('userId', '==', user.uid));
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -41,10 +57,19 @@ export function JobAlerts() {
     });
 
     return () => unsubscribe();
-  }, [user]);
+  }, [user, isModalOpen]);
 
   const handleDelete = async (id: string) => {
     if (!window.confirm('Delete this alert? You will no longer receive notifications for it.')) return;
+    
+    const isDemoMode = !!localStorage.getItem('sira_go_demo_user');
+    if (isDemoMode && user) {
+      const updated = alerts.filter(a => a.id !== id);
+      setAlerts(updated);
+      localStorage.setItem(`sira_go_demo_alerts_${user.uid}`, JSON.stringify(updated));
+      return;
+    }
+
     try {
       await deleteDoc(doc(db, 'alerts', id));
     } catch (err) {

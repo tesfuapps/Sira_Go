@@ -28,8 +28,8 @@ service cloud.firestore {
       return data.keys().hasAll(['email', 'role', 'createdAt']) && data.keys().size() <= 5
         && data.email is string && data.email.size() <= 255
         && data.role in ["admin", "employer", "seeker"]
-        && (!('displayName' in data) || (data.displayName is string && data.displayName.size() <= 100))
-        && (!('phone' in data) || (data.phone is string && data.phone.size() <= 30))
+        && (!('displayName' in data) || data.displayName == null || (data.displayName is string && data.displayName.size() <= 100))
+        && (!('phone' in data) || data.phone == null || (data.phone is string && data.phone.size() <= 30))
         && (data.createdAt is timestamp);
     }
 
@@ -86,23 +86,23 @@ service cloud.firestore {
 
     // --- Alerts Object ---
     function isValidAlert(data) {
-      return (
-        (data.keys().hasAll(['userId', 'keyword', 'notifyVia', 'contact', 'createdAt']) && data.keys().size() == 5) ||
-        (data.keys().hasAll(['userId', 'keyword', 'notifyVia', 'contact', 'createdAt', 'location']) && data.keys().size() == 6 && data.location is string && data.location.size() <= 100)
-      ) && data.userId is string
+      return data.keys().hasAll(['userId', 'keyword', 'notifyVia', 'contact', 'createdAt']) 
+        && data.keys().size() <= 7
+        && data.userId is string
         && data.keyword is string && data.keyword.size() <= 100
         && data.notifyVia in ['email', 'telegram']
         && data.contact is string && data.contact.size() <= 255
+        && (!('location' in data) || (data.location is string && data.location.size() <= 100))
+        && (!('category' in data) || (data.category is string && data.category in ['Developers', 'Creatives', 'Finance', 'Marketing & Sales', 'Management', 'Operations', 'Other']))
         && data.createdAt is timestamp;
     }
 
     match /alerts/{alertId} {
       allow get: if isSignedIn() && (existing().userId == request.auth.uid || isAdmin());
-      allow list: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
-      allow create: if isSignedIn()
-        && isValidAlert(incoming())
-        && incoming().userId == request.auth.uid
-        && incoming().createdAt == request.time;
+      allow list: if (isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin())) || resource.data.notifyVia == 'telegram';
+      allow create: if isValidAlert(incoming())
+        && incoming().createdAt == request.time
+        && (isSignedIn() ? incoming().userId == request.auth.uid : true);
       allow update: if false;
       allow delete: if isSignedIn() && (existing().userId == request.auth.uid || isAdmin());
     }
@@ -116,7 +116,11 @@ service cloud.firestore {
 
         allow create: if isValidId(jobId) 
           && isValidJob(incoming())
-          && incoming().createdAt == request.time;
+          && incoming().createdAt == request.time
+          && (
+               incoming().status == "Pending" || 
+               (isSignedIn() && (incoming().employerId == request.auth.uid && (incoming().status == "Pending" || isAdmin())))
+             );
 
         allow update: if isValidId(jobId)
           && isSignedIn()

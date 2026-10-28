@@ -18,3 +18,15 @@ export function parseSalary(salary: string | undefined): number | null {
   if (!match) return null;
   return parseFloat(match[1].replace(/,/g, ''));
 }
+
+export function formatETB(amount: number | string): string {
+  if (typeof amount === 'string') {
+    if (amount.toLowerCase().includes('etb')) return amount;
+    const num = parseSalary(amount);
+    if (num !== null) {
+      return `${num.toLocaleString()} ETB`;
+    }
+    return amount;
+  }
+  return `${amount.toLocaleString()} ETB`;
+}

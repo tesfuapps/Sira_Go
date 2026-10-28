@@ -34,6 +34,27 @@ export function AlertModal({ isOpen, onClose, initialKeyword = '', initialCatego
 
     setIsSubmitting(true);
     try {
+      const isDemoMode = !!localStorage.getItem('sira_go_demo_user');
+      if (isDemoMode) {
+        const stored = localStorage.getItem(`sira_go_demo_alerts_${user.uid}`);
+        const currentAlerts = stored ? JSON.parse(stored) : [];
+        const newAlert: JobAlert = {
+          id: 'alert-' + Date.now(),
+          userId: user.uid,
+          keyword: keyword.trim(),
+          notifyVia,
+          contact: contact.trim(),
+          location: location.trim() || undefined,
+          category: category !== 'All' ? category : undefined,
+          createdAt: new Date().toISOString()
+        };
+        localStorage.setItem(`sira_go_demo_alerts_${user.uid}`, JSON.stringify([newAlert, ...currentAlerts]));
+        alert('Alert created successfully! You will be notified when jobs match these criteria.');
+        onClose();
+        setIsSubmitting(false);
+        return;
+      }
+
       const alertData: Omit<JobAlert, 'id' | 'createdAt'> & { createdAt: any } = {
         userId: user.uid,
         keyword: keyword.trim(),
@@ -65,19 +86,19 @@ export function AlertModal({ isOpen, onClose, initialKeyword = '', initialCatego
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm transition-opacity">
       <div 
-        className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden transform transition-all"
+        className="bg-white dark:bg-[#111827] rounded-3xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all border border-gray-100 dark:border-[#1F2937]"
         onClick={e => e.stopPropagation()}
       >
-        <div className="p-6 border-b border-gray-100 flex items-center justify-between">
+        <div className="p-6 border-b border-gray-100 dark:border-[#1F2937] flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="p-2 bg-blue-50 rounded-full text-sira-blue">
+            <div className="p-2 bg-blue-50 dark:bg-blue-900/30 rounded-full text-sira-blue dark:text-blue-400">
               <Bell size={20} />
             </div>
-            <h3 className="text-lg font-bold text-gray-900">Create Job Alert</h3>
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white">Create Job Alert</h3>
           </div>
           <button 
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-900 transition-colors rounded-full p-1"
+            className="text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors rounded-full p-1 cursor-pointer"
           >
             <X size={20} />
           </button>
@@ -85,50 +106,50 @@ export function AlertModal({ isOpen, onClose, initialKeyword = '', initialCatego
 
         <form onSubmit={handleSubmit} className="p-6 space-y-5 flex flex-col items-center w-full">
           {!user ? (
-            <div className="text-center py-4 text-gray-600">
-              <p className="font-medium text-gray-900 mb-2">Sign in to save alerts</p>
+            <div className="text-center py-4 text-gray-600 dark:text-gray-400">
+              <p className="font-medium text-gray-900 dark:text-white mb-2">Sign in to save alerts</p>
               <p className="text-sm">You need a Sira account to subscribe to job notifications.</p>
             </div>
           ) : (
             <>
               <div className="w-full">
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Keywords / Job Title <span className="text-red-500">*</span></label>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Keywords / Job Title <span className="text-red-500">*</span></label>
                 <input 
                   type="text" 
                   required
                   value={keyword}
                   onChange={(e) => setKeyword(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-sira-blue focus:bg-white transition-all"
+                  className="w-full px-4 py-2.5 bg-gray-50 dark:bg-[#1F2937]/50 border border-gray-200 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-sira-blue text-gray-900 dark:text-white transition-all"
                   placeholder="e.g. React Developer, Marketing Manager"
                 />
               </div>
 
               <div className="w-full">
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Category</label>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Category</label>
                 <select
                   value={category}
                   onChange={(e) => setCategory(e.target.value as JobCategory | 'All')}
-                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-sira-blue focus:border-transparent transition-all"
+                  className="w-full px-4 py-2.5 bg-gray-50 dark:bg-[#1F2937]/50 border border-gray-200 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-sira-blue text-gray-900 dark:text-white transition-all"
                 >
-                  <option value="All">All Categories</option>
-                  <option value="Developers">Developers</option>
-                  <option value="Creatives">Creatives</option>
-                  <option value="Finance">Finance</option>
-                  <option value="Marketing & Sales">Marketing & Sales</option>
-                  <option value="Management">Management</option>
-                  <option value="Operations">Operations</option>
-                  <option value="Other">Other</option>
+                  <option value="All" className="dark:bg-[#111827]">All Categories</option>
+                  <option value="Developers" className="dark:bg-[#111827]">Developers</option>
+                  <option value="Creatives" className="dark:bg-[#111827]">Creatives</option>
+                  <option value="Finance" className="dark:bg-[#111827]">Finance</option>
+                  <option value="Marketing & Sales" className="dark:bg-[#111827]">Marketing & Sales</option>
+                  <option value="Management" className="dark:bg-[#111827]">Management</option>
+                  <option value="Operations" className="dark:bg-[#111827]">Operations</option>
+                  <option value="Other" className="dark:bg-[#111827]">Other</option>
                 </select>
               </div>
 
               <div className="w-full">
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Notify me via</label>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Notify me via</label>
                 <div className="flex gap-3">
                   <button
                     type="button"
                     onClick={() => setNotifyVia('email')}
-                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 border rounded-xl font-medium transition-colors ${
-                      notifyVia === 'email' ? 'bg-blue-50 border-blue-200 text-blue-700' : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
+                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 border rounded-xl font-medium transition-colors cursor-pointer ${
+                      notifyVia === 'email' ? 'bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-700 text-blue-700 dark:text-blue-300' : 'bg-white dark:bg-[#1F2937]/30 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50'
                     }`}
                   >
                     <Mail size={16} /> Email
@@ -136,8 +157,8 @@ export function AlertModal({ isOpen, onClose, initialKeyword = '', initialCatego
                   <button
                     type="button"
                     onClick={() => setNotifyVia('telegram')}
-                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 border rounded-xl font-medium transition-colors ${
-                      notifyVia === 'telegram' ? 'bg-[#0088cc]/10 border-[#0088cc]/30 text-[#0088cc]' : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
+                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 border rounded-xl font-medium transition-colors cursor-pointer ${
+                      notifyVia === 'telegram' ? 'bg-[#0088cc]/15 border-[#0088cc]/40 text-[#0088cc] dark:text-[#38bdf8]' : 'bg-white dark:bg-[#1F2937]/30 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50'
                     }`}
                   >
                     <Send size={16} /> Telegram
@@ -146,7 +167,7 @@ export function AlertModal({ isOpen, onClose, initialKeyword = '', initialCatego
               </div>
 
               <div className="w-full">
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
                   {notifyVia === 'email' ? 'Email Address' : 'Telegram Handle / Number'} <span className="text-red-500">*</span>
                 </label>
                 <input 
@@ -154,27 +175,20 @@ export function AlertModal({ isOpen, onClose, initialKeyword = '', initialCatego
                   required
                   value={contact}
                   onChange={(e) => setContact(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-sira-blue focus:bg-white transition-all"
+                  className="w-full px-4 py-2.5 bg-gray-50 dark:bg-[#1F2937]/50 border border-gray-200 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-sira-blue text-gray-900 dark:text-white transition-all"
                   placeholder={notifyVia === 'email' ? 'name@example.com' : '@username or +251...'}
                 />
               </div>
 
               <div className="w-full">
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Category</label>
-                <select
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value as JobCategory | 'All')}
-                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-sira-blue focus:border-transparent transition-all"
-                >
-                  <option value="All">All Categories</option>
-                  <option value="Developers">Developers</option>
-                  <option value="Creatives">Creatives</option>
-                  <option value="Finance">Finance</option>
-                  <option value="Marketing & Sales">Marketing & Sales</option>
-                  <option value="Management">Management</option>
-                  <option value="Operations">Operations</option>
-                  <option value="Other">Other</option>
-                </select>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Location (Optional)</label>
+                <input 
+                  type="text" 
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-gray-50 dark:bg-[#1F2937]/50 border border-gray-200 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-sira-blue text-gray-900 dark:text-white transition-all"
+                  placeholder="e.g. Addis Ababa, Remote"
+                />
               </div>
 
               <button 

@@ -1,41 +1,50 @@
 import React, { useState, useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useJobs } from '../context/JobContext';
 import { JobCard } from '../components/JobCard';
 import { AlertModal } from '../components/AlertModal';
-import { Zap, Search, Bell, ChevronDown, Loader2, AlertCircle } from 'lucide-react';
+import { Zap, Search, Bell, ChevronDown, AlertCircle, MapPin, Briefcase, Building, Users, TrendingUp, Code, Palette, Megaphone, DollarSign, Cpu, HeartPulse, GraduationCap, ArrowRight, SlidersHorizontal, RotateCcw } from 'lucide-react';
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { db } from '../lib/firebase';
+import { motion } from 'motion/react';
 
 import { JobCategory } from '../types';
 import { isJobExpired, parseSalary } from '../lib/utils';
 
 export function Home() {
   const { jobs, jobsLoading, jobsError } = useJobs();
+  const navigate = useNavigate();
   const [seeding, setSeeding] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [locationQuery, setLocationQuery] = useState('All');
   const [categoryFilter, setCategoryFilter] = useState<JobCategory | 'All'>('All');
   const [dateFilter, setDateFilter] = useState<'Any' | '24h' | 'Week' | 'Month'>('Any');
   const [salaryRange, setSalaryRange] = useState<{ min: string; max: string }>({ min: '', max: '' });
   const [showExpired, setShowExpired] = useState(false);
   const [isAlertModalOpen, setIsAlertModalOpen] = useState(false);
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   
   const approvedJobs = jobs.filter(j => j.status === 'Approved');
 
   const filteredJobs = useMemo(() => {
     let result = approvedJobs;
 
-    // Filter out expired jobs unless explicitly shown
     if (!showExpired) {
       result = result.filter(job => !isJobExpired(job.deadline));
     }
 
-    // Apply specific category filter
     if (categoryFilter !== 'All') {
       result = result.filter(job => job.category === categoryFilter);
     }
 
-    // Apply date filter
+    if (locationQuery !== 'All') {
+      if (locationQuery === 'Remote') {
+        result = result.filter(job => job.location.toLowerCase().includes('remote'));
+      } else {
+        result = result.filter(job => job.location.toLowerCase().includes(locationQuery.toLowerCase()));
+      }
+    }
+
     if (dateFilter !== 'Any') {
       const now = new Date();
       result = result.filter(job => {
@@ -50,18 +59,16 @@ export function Home() {
       });
     }
 
-    // Apply salary range filter
     if (salaryRange.min || salaryRange.max) {
       const min = salaryRange.min ? parseFloat(salaryRange.min) : 0;
       const max = salaryRange.max ? parseFloat(salaryRange.max) : Infinity;
       result = result.filter(job => {
         const salary = parseSalary(job.salary);
-        if (salary === null) return true; // keep jobs without salary
+        if (salary === null) return true;
         return salary >= min && salary <= max;
       });
     }
 
-    // Apply search query
     if (searchQuery.trim()) {
       const lowerQuery = searchQuery.toLowerCase();
       result = result.filter(job => 
@@ -73,10 +80,11 @@ export function Home() {
     }
     
     return result;
-  }, [approvedJobs, searchQuery, categoryFilter, dateFilter, salaryRange, showExpired]);
+  }, [approvedJobs, searchQuery, locationQuery, categoryFilter, dateFilter, salaryRange, showExpired]);
 
   const handleResetFilters = () => {
     setSearchQuery('');
+    setLocationQuery('All');
     setCategoryFilter('All');
     setDateFilter('Any');
     setSalaryRange({ min: '', max: '' });
@@ -85,80 +93,55 @@ export function Home() {
 
   const handleSeedJobs = async () => {
     setSeeding(true);
-    const titles = ["Frontend Developer", "Backend Engineer", "Product Manager", "Data Analyst", "UX Designer", "Marketing Specialist", "DevOps Engineer"];
-    const companies = ["TechCorp", "Innovatech", "CloudServe", "DataSys", "WebDesign Co", "NextGen Solutions"];
+    const titles = ["Senior Frontend Developer", "Backend Engineer", "Product Manager", "Data Analyst", "UX/UI Designer", "Digital Marketing Specialist", "DevOps Engineer"];
+    const companies = ["TechCorp Ethiopia", "Innovatech", "CloudServe", "DataSys", "Abyssinia Solutions", "NextGen Digital"];
     const locations = ["Addis Ababa", "Remote", "Hawassa", "Dire Dawa", "Mekelle", "Bahir Dar", "Adama"];
     
     const categories: JobCategory[] = ['Developers', 'Creatives', 'Finance', 'Marketing & Sales', 'Management', 'Operations', 'Other'];
     const descriptions = [
-      `We are looking for a highly skilled Software Engineer to join our core product team. You will be responsible for designing and implementing scalable backend services, optimizing API performance, and working closely with our frontend developers to deliver seamless user experiences.
-
-Requirements:
-• 3+ years of experience in Node.js and TypeScript.
-• Strong understanding of SQL (PostgreSQL preferred) and database design.
-• Familiarity with Docker and containerized deployments.
-• Excellent problem-solving skills and clean code practices.
-• Experience with Redis or similar caching mechanisms.
-
-We offer flexible working hours, health coverage, and a collaborative work environment.`,
-      `Join our creative team as a UX/UI Designer and help shape the next generation of our digital products. You'll work closely with product managers and engineers to craft intuitive, beautiful interfaces that our users love.
-
-Responsibilities:
-• Conduct user research and usability testing to validate design decisions.
-• Create wireframes, interactive prototypes, and high-fidelity mockups.
-• Maintain and evolve our internal design system.
-• Ensure accessibility standards are met across all platforms.
-
-Qualifications:
-• A strong portfolio demonstrating complex problem solving through design.
-• Proficiency in Figma.
-• Basic understanding of HTML/CSS is a plus.`,
-      `We're hiring a Data Analyst to translate raw data into actionable business insights. In this role, you will analyze user behavior, build automated reporting dashboards, and assist leadership in making data-driven decisions.
-
-What you'll do:
-• Develop and maintain complex SQL queries to extract data from our warehouse.
-• Create automated dashboards using Tableau or Power BI.
-• Identify trends and anomalies in user engagement metrics.
-• Present analytical findings to non-technical stakeholders.
-
-You should have:
-• A degree in Computer Science, Statistics, Mathematics, or Economics.
-• 2+ years of experience in a similar analytical role.
-• High proficiency in Python (Pandas/NumPy) or R.`,
-      `Are you a marketing wizard? We need a Digital Marketing Specialist to lead our user acquisition campaigns and manage our brand presence across social media channels.
-
-Key Responsibilities:
-• Plan and execute SEO and SEM strategies.
-• Manage performance marketing budgets across Google Ads and Meta Ads.
-• Track and report on campaign CPA, ROI, and conversion rates.
-• Collaborate with content creators to produce engaging campaign materials.
-
-Requirements:
-• Proven track record of running successful paid acquisition campaigns.
-• Deep understanding of Google Analytics and marketing attribution models.
-• Creative mindset with a data-driven approach.`,
-      `We are seeking a reliable and proactive Product Manager to guide our new mobile app initiative from conception to launch. You are the glue between engineering, design, and our stakeholders.
-
-Your day-to-day:
-• Define product vision, strategy, and roadmap.
-• Write clear technical and non-technical specifications and user stories.
-• Prioritize backlog based on business value and user impact.
-• Run daily standups and sprint planning meetings.
-
-What we're looking for:
-• 4+ years of product management experience, preferably in B2C tech.
-• Ability to influence cross-functional teams without direct authority.
-• Strong communication and organizational skills.`
+      `We are looking for a highly skilled Software Engineer to join our core product team. You will be responsible for designing and implementing scalable backend services and working closely with our frontend developers.`,
+      `Join our creative team as a UX/UI Designer and help shape the next generation of our digital products across Ethiopia.`,
+      `We're hiring a Data Analyst to translate raw data into actionable business insights and automated reporting dashboards.`,
+      `Are you a marketing wizard? We need a Digital Marketing Specialist to lead our user acquisition campaigns and manage brand presence.`
     ];
 
     try {
+      const isDemoMode = !!localStorage.getItem('sira_go_demo_user');
+      if (isDemoMode) {
+        const stored = localStorage.getItem('sira_go_demo_jobs');
+        const existingJobs = stored ? JSON.parse(stored) : [];
+        const newDemoJobs = [];
+        for (let i = 0; i < 5; i++) {
+          newDemoJobs.push({
+            id: 'demo-seed-' + Date.now() + '-' + i,
+            title: titles[Math.floor(Math.random() * titles.length)],
+            company: companies[Math.floor(Math.random() * companies.length)],
+            category: categories[Math.floor(Math.random() * categories.length)],
+            location: locations[Math.floor(Math.random() * locations.length)],
+            salary: `${Math.floor(Math.random() * 50 + 25)},000 ETB / month`,
+            deadline: new Date(Date.now() + 1000 * 60 * 60 * 24 * (Math.floor(Math.random() * 30 + 10))).toISOString(),
+            description: descriptions[i % descriptions.length],
+            status: 'Approved',
+            employerId: 'admin-seed',
+            createdAt: new Date().toISOString(),
+            applyMethod: {
+              type: Math.random() > 0.5 ? 'telegram' : 'link',
+              value: Math.random() > 0.5 ? '@hr_contact' : 'https://example.com/apply'
+            }
+          });
+        }
+        localStorage.setItem('sira_go_demo_jobs', JSON.stringify([...newDemoJobs, ...existingJobs]));
+        window.location.reload();
+        return;
+      }
+
       for (let i = 0; i < 5; i++) {
         await addDoc(collection(db, 'jobs'), {
             title: titles[Math.floor(Math.random() * titles.length)],
             company: companies[Math.floor(Math.random() * companies.length)],
             category: categories[Math.floor(Math.random() * categories.length)],
             location: locations[Math.floor(Math.random() * locations.length)],
-            salary: `${Math.floor(Math.random() * 50 + 20)},000 ETB`,
+            salary: `${Math.floor(Math.random() * 50 + 25)},000 ETB / month`,
             deadline: new Date(Date.now() + 1000 * 60 * 60 * 24 * (Math.floor(Math.random() * 30 + 10))).toISOString(),
             description: descriptions[i % descriptions.length],
             status: 'Approved',
@@ -179,186 +162,361 @@ What we're looking for:
     }
   };
 
+  const categoriesList = [
+    { name: 'Developers', label: 'Technology', count: '1,250 Jobs', icon: Code, cat: 'Developers' },
+    { name: 'Creatives', label: 'Design & Creative', count: '450 Jobs', icon: Palette, cat: 'Creatives' },
+    { name: 'Marketing & Sales', label: 'Marketing', count: '320 Jobs', icon: Megaphone, cat: 'Marketing & Sales' },
+    { name: 'Finance', label: 'Finance', count: '680 Jobs', icon: DollarSign, cat: 'Finance' },
+    { name: 'Management', label: 'Business', count: '920 Jobs', icon: Cpu, cat: 'Management' },
+    { name: 'Operations', label: 'Engineering', count: '410 Jobs', icon: Briefcase, cat: 'Operations' },
+    { name: 'Other', label: 'Healthcare & More', count: '350 Jobs', icon: HeartPulse, cat: 'Other' },
+  ];
+
   return (
-    <div className="flex flex-col gap-12 pb-10 max-w-5xl mx-auto">
+    <div className="flex flex-col gap-16 pb-20 max-w-7xl mx-auto">
       {/* Hero Section */}
-      <section className="flex flex-col gap-6 text-center max-w-2xl mx-auto pt-8 md:pt-12 relative">
+      <motion.section 
+        initial={{ opacity: 0, y: 25 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.7, ease: 'easeOut' }}
+        className="flex flex-col gap-8 text-center max-w-4xl mx-auto pt-12 md:pt-16 relative"
+      >
         <button 
           onClick={handleSeedJobs}
           disabled={seeding}
-          className="absolute -top-4 right-0 flex items-center gap-1.5 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 px-3 py-1.5 rounded-full text-xs font-medium hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-sira-orange transition-colors disabled:opacity-50"
+          className="absolute -top-2 right-0 flex items-center gap-1.5 bg-gray-800 text-gray-300 px-4 py-2 rounded-xl text-xs font-bold hover:bg-gray-700 hover:text-sira-orange transition-colors disabled:opacity-50 shadow-md cursor-pointer border border-gray-700"
           title="Generate 5 demo jobs"
         >
-          <Zap size={14} className={seeding ? "animate-pulse" : ""} />
-          {seeding ? "Seeding..." : "Seed Jobs"}
+          <Zap size={14} className={seeding ? "animate-spin text-sira-orange" : "text-sira-orange"} />
+          {seeding ? "Seeding..." : "Seed Demo Jobs"}
         </button>
-        <div>
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-sira-blue/5 dark:bg-sira-blue/20 border border-sira-blue/15 dark:border-sira-blue/40 rounded-full text-sira-blue dark:text-blue-300 text-sm font-semibold mb-6">
-            <Zap size={14} className="text-sira-orange" />
-            Ethiopia's Fastest Hiring Platform
-          </div>
-          <h1 className="text-[3rem] md:text-6xl font-extrabold text-sira-blue leading-tight mb-6 tracking-tight">
+
+        <div className="space-y-4">
+          <motion.div 
+            initial={{ scale: 0.95, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: 0.2, duration: 0.5 }}
+            className="inline-flex items-center gap-2 px-4 py-1.5 bg-blue-600/10 border border-blue-500/30 rounded-full text-blue-400 text-sm font-extrabold shadow-sm"
+          >
+            <span className="w-2 h-2 rounded-full bg-sira-orange animate-ping" />
+            Ethiopia's Premier Job Marketplace
+          </motion.div>
+
+          <motion.h1 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3, duration: 0.6 }}
+            className="text-4xl sm:text-6xl md:text-7xl font-extrabold text-white leading-[1.1] tracking-tight"
+          >
             Find Jobs.<br />
-            <span className="text-sira-orange">Apply in Seconds.</span>
-          </h1>
-          <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-400 leading-relaxed font-medium">
-            Post jobs or apply instantly via Telegram. The fastest platform for the Ethiopian workforce.
-          </p>
+            <span className="bg-gradient-to-r from-blue-400 via-blue-500 to-sira-orange bg-clip-text text-transparent">Build Your Future.</span>
+          </motion.h1>
+
+          <motion.p 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4, duration: 0.6 }}
+            className="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto font-medium"
+          >
+            Discover opportunities from companies and organizations across Ethiopia. Find the right opportunity and take your next step.
+          </motion.p>
         </div>
-        <div className="flex flex-col sm:flex-row justify-center gap-4 mt-4">
-          <a href="#featured-jobs" className="px-8 py-5 bg-sira-orange text-black rounded-2xl font-bold text-lg shadow-[0_10px_25px_-5px_rgba(255,122,0,0.3)] hover:bg-[#E66E00] hover:scale-[1.02] transition-all">
-            Browse Jobs
+
+        {/* Premium Search Box */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5, duration: 0.6 }}
+          className="w-full bg-[#111827] border border-[#1F2937] p-3 sm:p-4 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] flex flex-col md:flex-row gap-3 items-center"
+        >
+          <div className="relative flex-1 w-full flex items-center px-4 py-3 bg-[#1F2937]/50 rounded-2xl border border-gray-700/50 focus-within:border-blue-500 transition-colors">
+            <Search size={20} className="text-gray-400 mr-3 shrink-0" />
+            <div className="flex flex-col w-full text-left">
+              <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">What</span>
+              <input
+                type="text"
+                placeholder="Job title, skill or keyword"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="bg-transparent text-white placeholder-gray-500 text-sm font-semibold focus:outline-none w-full"
+              />
+            </div>
+          </div>
+
+          <div className="relative flex-1 w-full flex items-center px-4 py-3 bg-[#1F2937]/50 rounded-2xl border border-gray-700/50 focus-within:border-blue-500 transition-colors">
+            <MapPin size={20} className="text-gray-400 mr-3 shrink-0" />
+            <div className="flex flex-col w-full text-left">
+              <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Where</span>
+              <select
+                value={locationQuery}
+                onChange={(e) => setLocationQuery(e.target.value)}
+                className="bg-transparent text-white text-sm font-semibold focus:outline-none w-full cursor-pointer"
+              >
+                <option value="All" className="bg-[#111827]">All Locations (Ethiopia)</option>
+                <option value="Addis Ababa" className="bg-[#111827]">Addis Ababa</option>
+                <option value="Remote" className="bg-[#111827]">Remote</option>
+                <option value="Adama" className="bg-[#111827]">Adama</option>
+                <option value="Hawassa" className="bg-[#111827]">Hawassa</option>
+                <option value="Bahir Dar" className="bg-[#111827]">Bahir Dar</option>
+                <option value="Mekelle" className="bg-[#111827]">Mekelle</option>
+              </select>
+            </div>
+          </div>
+
+          <a 
+            href="#featured-jobs"
+            className="w-full md:w-auto px-8 py-4 bg-blue-600 hover:bg-blue-500 text-white font-extrabold rounded-2xl shadow-lg shadow-blue-600/30 transition-all flex items-center justify-center gap-2 shrink-0 cursor-pointer"
+          >
+            <Search size={18} />
+            Search Jobs
           </a>
-          <Link to="/employer/post" className="px-8 py-5 border-2 border-sira-blue text-sira-blue rounded-2xl font-bold text-lg hover:bg-gray-50 dark:hover:bg-gray-800 hover:scale-[1.02] transition-all">
-            Post a Job
+        </motion.div>
+
+        {/* Quick Filter Pills & Controls */}
+        <div className="flex flex-wrap items-center justify-center gap-2 text-xs font-bold">
+          <span className="text-gray-500 mr-1">Popular:</span>
+          {['Remote', 'Full Time', 'Part Time', 'Internship', 'Entry Level'].map((pill) => (
+            <button
+              key={pill}
+              onClick={() => setSearchQuery(pill)}
+              className="px-3.5 py-1.5 bg-[#111827] hover:bg-[#1F2937] text-gray-300 border border-[#1F2937] rounded-full transition-colors cursor-pointer"
+            >
+              {pill}
+            </button>
+          ))}
+
+          <button
+            onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+            className={`px-3.5 py-1.5 rounded-full transition-all flex items-center gap-1.5 cursor-pointer border ${
+              showAdvancedFilters || dateFilter !== 'Any' || salaryRange.min || salaryRange.max || showExpired
+                ? 'bg-blue-600/20 border-blue-500 text-blue-400'
+                : 'bg-[#111827] hover:bg-[#1F2937] text-gray-300 border-[#1F2937]'
+            }`}
+          >
+            <SlidersHorizontal size={12} />
+            <span>Filters {(dateFilter !== 'Any' || salaryRange.min || salaryRange.max || showExpired) && '• Active'}</span>
+          </button>
+
+          <button
+            onClick={() => setIsAlertModalOpen(true)}
+            className="px-3.5 py-1.5 bg-sira-orange/15 hover:bg-sira-orange/25 text-sira-orange border border-sira-orange/30 rounded-full transition-colors flex items-center gap-1.5 cursor-pointer"
+          >
+            <Bell size={12} />
+            <span>Alert Me</span>
+          </button>
+        </div>
+
+        {/* Collapsible Advanced Filters Panel */}
+        {showAdvancedFilters && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="w-full bg-[#111827] border border-[#1F2937] rounded-3xl p-6 text-left shadow-2xl space-y-4"
+          >
+            <div className="flex items-center justify-between border-b border-[#1F2937] pb-3">
+              <h4 className="text-sm font-extrabold text-white flex items-center gap-2">
+                <SlidersHorizontal size={16} className="text-blue-400" />
+                Refine Your Search
+              </h4>
+              <button
+                onClick={handleResetFilters}
+                className="text-xs text-gray-400 hover:text-white flex items-center gap-1 cursor-pointer font-bold"
+              >
+                <RotateCcw size={12} /> Reset All
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
+              <div>
+                <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
+                  Date Posted
+                </label>
+                <div className="grid grid-cols-2 gap-1.5">
+                  {(['Any', '24h', 'Week', 'Month'] as const).map(df => (
+                    <button
+                      key={df}
+                      type="button"
+                      onClick={() => setDateFilter(df)}
+                      className={`px-3 py-2 text-xs font-bold rounded-xl border transition-colors cursor-pointer ${
+                        dateFilter === df
+                          ? 'bg-blue-600 text-white border-blue-500'
+                          : 'bg-[#1F2937]/50 text-gray-400 border-gray-700/60 hover:text-white'
+                      }`}
+                    >
+                      {df === 'Any' ? 'Anytime' : df === '24h' ? 'Past 24h' : df === 'Week' ? 'Past Week' : 'Past Month'}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
+                  Salary Range (ETB)
+                </label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    placeholder="Min (e.g. 20000)"
+                    value={salaryRange.min}
+                    onChange={(e) => setSalaryRange(prev => ({ ...prev, min: e.target.value }))}
+                    className="w-full bg-[#1F2937]/50 border border-gray-700/60 rounded-xl px-3 py-2 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
+                  />
+                  <span className="text-gray-500 font-bold">-</span>
+                  <input
+                    type="number"
+                    placeholder="Max (e.g. 80000)"
+                    value={salaryRange.max}
+                    onChange={(e) => setSalaryRange(prev => ({ ...prev, max: e.target.value }))}
+                    className="w-full bg-[#1F2937]/50 border border-gray-700/60 rounded-xl px-3 py-2 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
+                  Options
+                </label>
+                <label className="flex items-center gap-2 p-2.5 bg-[#1F2937]/40 border border-gray-700/60 rounded-xl cursor-pointer hover:bg-[#1F2937]/70 transition-colors">
+                  <input
+                    type="checkbox"
+                    checked={showExpired}
+                    onChange={(e) => setShowExpired(e.target.checked)}
+                    className="rounded text-blue-600 focus:ring-0 bg-[#111827] border-gray-600 w-4 h-4 cursor-pointer"
+                  />
+                  <span className="text-xs text-gray-300 font-bold">Include Expired Listings</span>
+                </label>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </motion.section>
+
+      {/* Statistics Section */}
+      <motion.section 
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.6 }}
+        className="grid grid-cols-2 md:grid-cols-4 gap-4 p-8 bg-[#111827] border border-[#1F2937] rounded-3xl shadow-xl"
+      >
+        {[
+          { label: 'Jobs Available', value: '10,000+', icon: Briefcase, color: 'text-blue-400' },
+          { label: 'Active Companies', value: '2,500+', icon: Building, color: 'text-sira-orange' },
+          { label: 'Professionals', value: '50,000+', icon: Users, color: 'text-purple-400' },
+          { label: 'New Jobs Weekly', value: '100+', icon: TrendingUp, color: 'text-emerald-400' },
+        ].map((stat, idx) => {
+          const Icon = stat.icon;
+          return (
+            <div key={idx} className="flex flex-col items-center text-center p-4">
+              <div className={`p-3 rounded-2xl bg-gray-800/80 mb-3 ${stat.color}`}>
+                <Icon size={24} />
+              </div>
+              <h3 className="text-2xl md:text-3xl font-extrabold text-white mb-1">{stat.value}</h3>
+              <p className="text-xs md:text-sm font-semibold text-gray-400 uppercase tracking-wider">{stat.label}</p>
+            </div>
+          );
+        })}
+      </motion.section>
+
+      {/* Job Categories Section */}
+      <section id="categories" className="w-full">
+        <div className="flex justify-between items-end mb-8 border-b border-[#1F2937] pb-4">
+          <div>
+            <h2 className="text-2xl md:text-3xl font-extrabold text-white mb-1">Explore Opportunities</h2>
+            <p className="text-gray-400 font-semibold text-sm">Browse jobs by industry and expertise</p>
+          </div>
+          <Link to="/" onClick={() => setCategoryFilter('All')} className="text-xs font-extrabold text-blue-400 hover:underline flex items-center gap-1">
+            View all <ArrowRight size={14} />
           </Link>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          {categoriesList.map((cat, idx) => {
+            const Icon = cat.icon;
+            const isSelected = categoryFilter === cat.cat;
+            return (
+              <motion.div
+                key={idx}
+                whileHover={{ y: -4, scale: 1.02 }}
+                transition={{ duration: 0.2 }}
+                onClick={() => setCategoryFilter(cat.cat as JobCategory)}
+                className={`p-6 rounded-3xl border transition-all cursor-pointer flex flex-col justify-between group ${
+                  isSelected 
+                    ? 'bg-blue-600/15 border-blue-500 text-white shadow-lg shadow-blue-500/10' 
+                    : 'bg-[#111827] border-[#1F2937] hover:border-blue-500/50 text-gray-200'
+                }`}
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <div className="w-12 h-12 rounded-2xl bg-gray-800/80 border border-gray-700/80 flex items-center justify-center text-blue-400 group-hover:scale-110 transition-transform">
+                    <Icon size={24} />
+                  </div>
+                  <span className="text-xs font-bold text-gray-400">{cat.count}</span>
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-lg text-white mb-1 group-hover:text-blue-400 transition-colors">{cat.label}</h3>
+                  <p className="text-xs text-gray-400 font-medium">Explore open roles</p>
+                </div>
+              </motion.div>
+            );
+          })}
         </div>
       </section>
 
       {/* Featured Jobs Section */}
-      <section id="featured-jobs" className="scroll-mt-8 w-full mt-8">
-        
-        {/* Search Bar & Alerts */}
-        <div className="max-w-3xl mx-auto w-full mb-6 flex flex-col sm:flex-row gap-3">
-          <div className="relative flex-1">
-            <div className="absolute inset-y-0 left-5 flex items-center pointer-events-none">
-              <Search className="h-6 w-6 text-gray-400" />
-            </div>
-            <input
-              type="text"
-              placeholder="Search by job title, company, or location..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-14 pr-6 py-4 bg-white dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100 dark:placeholder-gray-400 text-gray-900 placeholder-gray-400 border border-gray-300 rounded-2xl shadow-sm text-lg focus:outline-none focus:ring-2 focus:ring-sira-blue focus:border-transparent transition-all"
-            />
-          </div>
-          <button 
-            onClick={() => setIsAlertModalOpen(true)}
-            className="flex items-center justify-center gap-2 px-6 py-4 bg-blue-50 dark:bg-blue-900/20 text-sira-blue border border-blue-100 dark:border-blue-800 font-bold rounded-2xl shadow-sm hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors whitespace-nowrap"
-          >
-            <Bell size={20} />
-            <span className="hidden sm:inline">Alert Me</span>
-          </button>
-        </div>
-
-        {/* Filters */}
-        <div className="max-w-3xl mx-auto w-full mb-12 flex flex-col items-start gap-4">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between w-full gap-4">
-            <div className="w-full overflow-x-auto hide-scrollbar pb-1">
-              <div className="flex items-center gap-1.5 border-b border-gray-100 dark:border-gray-700 min-w-max pb-2">
-                {['All', 'Developers', 'Creatives', 'Finance', 'Marketing & Sales', 'Management', 'Operations', 'Other'].map((cat) => (
-                  <button
-                    key={cat}
-                    onClick={() => setCategoryFilter(cat as JobCategory | 'All')}
-                    className={`px-4 py-2 rounded-lg whitespace-nowrap text-sm font-semibold transition-all ${
-                      categoryFilter === cat 
-                        ? 'bg-[#0B2C5F] text-white shadow-sm dark:bg-gray-200 dark:text-[#0B2C5F]' 
-                        : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900'
-                    }`}
-                  >
-                    {cat}
-                  </button>
-                ))}
-              </div>
-            </div>
-            
-            <div className="relative shrink-0 w-full sm:w-[150px]">
-               <select
-                 value={dateFilter}
-                 onChange={(e) => setDateFilter(e.target.value as 'Any' | '24h' | 'Week' | 'Month')}
-                 className="appearance-none bg-gray-50 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 border border-gray-200 text-gray-700 text-sm font-semibold rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0B2C5F] focus:border-transparent block w-full py-2.5 pl-4 pr-10 cursor-pointer hover:bg-gray-100 transition-colors"
-               >
-                 <option value="Any">Any time</option>
-                 <option value="24h">Past 24 hours</option>
-                 <option value="Week">Past week</option>
-                 <option value="Month">Past month</option>
-               </select>
-               <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500 dark:text-gray-400">
-                 <ChevronDown size={16} />
-               </div>
-            </div>
-          </div>
-
-          {/* Salary Range Filter */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 w-full">
-            <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
-              <span className="font-medium">Salary range (ETB):</span>
-            </div>
-            <div className="flex items-center gap-2 w-full sm:w-auto">
-              <input
-                type="number"
-                placeholder="Min"
-                value={salaryRange.min}
-                onChange={(e) => setSalaryRange({ ...salaryRange, min: e.target.value })}
-                className="w-24 px-3 py-2 bg-white dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100 dark:placeholder-gray-400 text-gray-900 placeholder-gray-400 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sira-blue transition-all"
-              />
-              <span className="text-gray-400 dark:text-gray-500">—</span>
-              <input
-                type="number"
-                placeholder="Max"
-                value={salaryRange.max}
-                onChange={(e) => setSalaryRange({ ...salaryRange, max: e.target.value })}
-                className="w-24 px-3 py-2 bg-white dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100 dark:placeholder-gray-400 text-gray-900 placeholder-gray-400 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sira-blue transition-all"
-              />
-            </div>
-            <button
-              onClick={() => setShowExpired(!showExpired)}
-              className={`text-sm font-medium px-3 py-1.5 rounded-lg transition-colors ${
-                showExpired
-                  ? 'bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-400 border border-yellow-200 dark:border-yellow-800'
-                  : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
-              }`}
-              title="Include expired jobs in results"
-            >
-              Include Expired
-            </button>
-          </div>
-        </div>
-
-        <div className="flex justify-between items-end mb-8 border-b border-gray-100 dark:border-gray-700 pb-4">
+      <section id="featured-jobs" className="scroll-mt-8 w-full">
+        <div className="flex justify-between items-end mb-8 border-b border-[#1F2937] pb-4">
           <div>
-            <h2 className="text-2xl md:text-3xl font-extrabold text-[#0B2C5F] dark:text-white mb-1">Latest Opportunities</h2>
-            <p className="text-gray-500 dark:text-gray-400 font-medium">Curated roles from top companies</p>
+            <h2 className="text-2xl md:text-3xl font-extrabold text-white mb-1">Featured Opportunities</h2>
+            <p className="text-gray-400 font-semibold text-sm">Hand-picked roles from top Ethiopian organizations</p>
           </div>
-          <p className="text-sm font-semibold text-sira-orange hidden sm:block">{filteredJobs.length} jobs available</p>
+          <span className="text-xs font-extrabold text-sira-orange uppercase tracking-wider bg-orange-500/10 px-3 py-1 rounded-full border border-orange-500/20">
+            Featured
+          </span>
+        </div>
+
+        {jobsLoading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="bg-[#111827] border border-[#1F2937] rounded-3xl p-6 animate-pulse h-64"></div>
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredJobs.slice(0, 3).map((job) => (
+              <JobCard key={job.id} job={job} />
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* Latest Opportunities Section */}
+      <section className="w-full">
+        <div className="flex justify-between items-end mb-8 border-b border-[#1F2937] pb-4">
+          <div>
+            <h2 className="text-2xl md:text-3xl font-extrabold text-white mb-1">Latest Opportunities</h2>
+            <p className="text-gray-400 font-semibold text-sm">Browse all open positions in ETB</p>
+          </div>
+          <span className="text-sm font-extrabold text-blue-400">{filteredJobs.length} available</span>
         </div>
 
         {jobsLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[...Array(6)].map((_, i) => (
-              <div key={i} className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-5 animate-pulse">
-                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded mb-3"></div>
-                <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded mb-2"></div>
-                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded mb-3 w-3/4"></div>
-                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded mb-4"></div>
-                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded mb-2 w-1/2"></div>
-              </div>
+              <div key={i} className="bg-[#111827] border border-[#1F2937] rounded-3xl p-6 animate-pulse h-64"></div>
             ))}
-          </div>
-        ) : jobsError ? (
-          <div className="text-center py-16 bg-gray-50 dark:bg-gray-800 rounded-3xl border border-dashed border-gray-200 dark:border-gray-700">
-            <AlertCircle size={48} className="text-red-400 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Failed to load jobs</h3>
-            <p className="text-gray-500 dark:text-gray-400 mb-4">{jobsError}</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredJobs.length === 0 ? (
-              <div className="col-span-1 md:col-span-2 lg:col-span-3 py-16 text-center bg-gray-50/80 dark:bg-gray-800/80 backdrop-blur-md rounded-3xl border border-dashed border-gray-200 dark:border-gray-700 flex flex-col items-center justify-center gap-4">
-                <p className="text-gray-600 dark:text-gray-300 font-medium text-lg">
-                  {searchQuery || categoryFilter !== 'All' || dateFilter !== 'Any' || salaryRange.min || salaryRange.max ? `No jobs found matching your filters.` : "No jobs available right now. Check back later!"}
-                </p>
-                {(searchQuery || categoryFilter !== 'All' || dateFilter !== 'Any' || salaryRange.min || salaryRange.max || showExpired) && (
-                  <button
-                    onClick={handleResetFilters}
-                    className="px-6 py-2.5 bg-sira-blue text-white rounded-xl font-bold text-sm hover:bg-[#082046] transition-colors shadow-sm"
-                  >
-                    Reset All Filters
-                  </button>
-                )}
+              <div className="col-span-1 md:col-span-2 lg:col-span-3 py-16 text-center bg-[#111827] rounded-3xl border border-dashed border-[#1F2937]">
+                <p className="text-gray-300 font-bold text-lg mb-2">No opportunities found matching your search.</p>
+                <button onClick={handleResetFilters} className="px-6 py-2.5 bg-blue-600 text-white rounded-xl font-bold text-sm">Reset Filters</button>
               </div>
             ) : (
-              filteredJobs.map(job => <JobCard key={job.id} job={job} />)
+              filteredJobs.map((job) => (
+                <JobCard key={job.id} job={job} />
+              ))
             )}
           </div>
         )}

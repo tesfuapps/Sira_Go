@@ -18,6 +18,8 @@ export interface Job {
   status: JobStatus;
   employerId: string;
   createdAt: string;
+  telegramBroadcastedAt?: string;
+  telegramMessageId?: number;
 }
 
 export interface JobAlert {

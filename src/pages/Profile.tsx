@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth, UserProfile } from '../context/AuthContext';
-import { doc, updateDoc } from 'firebase/firestore';
-import { db } from '../lib/firebase';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import { User, Phone, Mail, Loader2, Award } from 'lucide-react';
 
 export function Profile() {
-  const { user, profile } = useAuth();
+  const navigate = useNavigate();
+  const { user, profile, updateUserProfile } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [formData, setFormData] = useState({
@@ -14,19 +14,23 @@ export function Profile() {
   });
 
   useEffect(() => {
+    if (!user) {
+      navigate('/login');
+      return;
+    }
     if (profile) {
       setFormData({
         displayName: profile.displayName || '',
         phone: profile.phone || '',
       });
     }
-  }, [profile]);
+  }, [user, profile, navigate]);
 
   if (!user || !profile) {
     return (
       <div className="flex flex-col items-center justify-center py-20">
         <Loader2 size={48} className="animate-spin text-sira-blue mb-4" />
-        <p className="text-gray-500 font-medium">Loading profile...</p>
+        <p className="text-gray-500 font-medium">Redirecting to login...</p>
       </div>
     );
   }
@@ -37,13 +41,10 @@ export function Profile() {
     
     setIsSaving(true);
     try {
-      const userRef = doc(db, 'users', user.uid);
-      await updateDoc(userRef, {
-        displayName: formData.displayName.trim() || null,
-        phone: formData.phone.trim() || null,
+      await updateUserProfile({
+        displayName: formData.displayName.trim() || undefined,
+        phone: formData.phone.trim() || undefined,
       });
-      // The context will automatically pick up the real-time update in a full app
-      // or we can manually trigger a reload or optimistic UI update here.
       alert('Profile updated successfully!');
       setIsEditing(false);
     } catch (error) {

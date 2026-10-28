@@ -7,7 +7,7 @@ import { JobCategory } from '../types';
 export function EditJob() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { jobs, editJob } = useJobs();
+  const { jobs, jobsLoading, editJob } = useJobs();
   
   const [formData, setFormData] = useState({
     title: '',
@@ -22,6 +22,7 @@ export function EditJob() {
   });
 
   useEffect(() => {
+    if (jobsLoading) return;
     const job = jobs.find(j => j.id === id);
     if (job) {
       setFormData({
@@ -38,7 +39,7 @@ export function EditJob() {
     } else {
       navigate('/employer');
     }
-  }, [id, jobs, navigate]);
+  }, [id, jobs, jobsLoading, navigate]);
 
   const [submitting, setSubmitting] = useState(false);
 
@@ -73,6 +74,15 @@ export function EditJob() {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
+  if (jobsLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-24">
+        <Loader2 size={40} className="animate-spin text-sira-blue mb-4" />
+        <p className="text-gray-400 font-semibold">Loading job details...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-2xl mx-auto py-8">
       <div className="mb-4">
@@ -81,9 +91,9 @@ export function EditJob() {
         </button>
       </div>
       
-      <div className="bg-white/85 dark:bg-gray-900/85 backdrop-blur-xl p-8 rounded-[32px] shadow-[0_12px_40px_rgba(0,0,0,0.06)] border border-white/60 dark:border-gray-800/80">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Edit Job Posting</h1>
-        <p className="text-gray-500 mb-8">Update the details of your job.</p>
+      <div className="bg-white dark:bg-[#111827] p-8 md:p-10 rounded-3xl shadow-xl border border-gray-100 dark:border-[#1F2937]">
+        <h1 className="text-3xl font-extrabold text-[#0B2C5F] dark:text-white mb-2">Edit Job Posting</h1>
+        <p className="text-gray-500 dark:text-gray-400 mb-8 font-medium">Update the details of your job.</p>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-4">

@@ -59,9 +59,9 @@ export function PostJob() {
 
   return (
     <div className="max-w-2xl mx-auto py-8">
-      <div className="bg-white/85 dark:bg-gray-900/85 backdrop-blur-xl p-8 rounded-[32px] shadow-[0_12px_40px_rgba(0,0,0,0.06)] border border-white/60 dark:border-gray-800/80">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Post a New Job</h1>
-        <p className="text-gray-500 mb-8">Fill out the details below. Most jobs are reviewed in under 2 hours.</p>
+      <div className="bg-white dark:bg-[#111827] p-8 md:p-10 rounded-3xl shadow-xl border border-gray-100 dark:border-[#1F2937]">
+        <h1 className="text-3xl font-extrabold text-[#0B2C5F] dark:text-white mb-2">Post a New Job</h1>
+        <p className="text-gray-500 dark:text-gray-400 mb-8 font-medium">Fill out the details below. Most jobs are reviewed in under 2 hours.</p>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-4">

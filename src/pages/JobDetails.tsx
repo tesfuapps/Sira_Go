@@ -1,26 +1,65 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { MapPin, Building2, Banknote, Calendar, ArrowLeft, Send, Bookmark, Share2 } from 'lucide-react';
+import { MapPin, Building2, Banknote, Calendar, ArrowLeft, Send, Bookmark, Share2, Loader2 } from 'lucide-react';
 import { useJobs } from '../context/JobContext';
+import { db } from '../lib/firebase';
+import { doc, getDoc } from 'firebase/firestore';
+import { Job } from '../types';
 
 export function JobDetails() {
   const { id } = useParams();
-  const { jobs, savedJobIds, toggleSavedJob } = useJobs();
-  const job = jobs.find(j => j.id === id);
+  const { jobs, jobsLoading, savedJobIds, toggleSavedJob } = useJobs();
+  const [individualJob, setIndividualJob] = useState<Job | null>(null);
+  const [fetchingDoc, setFetchingDoc] = useState(false);
+
+  const contextJob = jobs.find(j => j.id === id);
+  const job = contextJob || individualJob;
+
+  useEffect(() => {
+    if (!contextJob && id && !jobsLoading) {
+      setFetchingDoc(true);
+      getDoc(doc(db, 'jobs', id))
+        .then(snap => {
+          if (snap.exists()) {
+            const data = snap.data();
+            setIndividualJob({
+              id: snap.id,
+              ...data,
+              createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toISOString() : new Date().toISOString()
+            } as Job);
+          }
+        })
+        .catch(err => console.error("Could not fetch job doc:", err))
+        .finally(() => setFetchingDoc(false));
+    }
+  }, [id, contextJob, jobsLoading]);
+
+  if (jobsLoading || fetchingDoc) {
+    return (
+      <div className="flex flex-col items-center justify-center py-28">
+        <Loader2 size={44} className="animate-spin text-sira-blue mb-4" />
+        <p className="text-gray-400 font-semibold">Loading job details...</p>
+      </div>
+    );
+  }
 
   if (!job) {
     return (
-      <div className="text-center py-20">
-        <h2 className="text-2xl font-bold text-gray-900">Job not found</h2>
-        <Link to="/" className="text-sira-blue hover:underline mt-4 inline-block">Return Home</Link>
+      <div className="text-center py-24 bg-[#111827] border border-[#1F2937] rounded-3xl max-w-xl mx-auto my-12">
+        <h2 className="text-2xl font-bold text-white mb-2">Job not found</h2>
+        <p className="text-gray-400 text-sm mb-6">This job posting may have expired or been removed.</p>
+        <Link to="/" className="px-6 py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-500 transition-colors inline-block">
+          Return to All Jobs
+        </Link>
       </div>
     );
   }
 
   const handleApply = () => {
     if (job.applyMethod.type === 'telegram') {
-      const username = job.applyMethod.value.replace('@', '');
-      window.open(`https://t.me/${username}`, '_blank');
+      const username = job.applyMethod.value.replace(/^@/, '').replace(/^https?:\/\/t\.me\//, '').trim();
+      const introText = `Hello! I would like to apply for the "${job.title}" position at ${job.company} posted on Sira Go.`;
+      window.open(`https://t.me/${username}?text=${encodeURIComponent(introText)}`, '_blank');
     } else if (job.applyMethod.type === 'phone') {
       window.location.href = `tel:${job.applyMethod.value}`;
     } else {
@@ -48,14 +87,14 @@ export function JobDetails() {
         <ArrowLeft size={18} /> Back to jobs
       </Link>
       
-      <div className="bg-white/85 dark:bg-gray-800/85 backdrop-blur-xl rounded-[32px] p-8 md:p-12 shadow-[0_12px_40px_rgba(0,0,0,0.06)] border border-white/60 dark:border-gray-700/80">
-        <div className="mb-8 pb-8 border-b border-gray-100">
+      <div className="bg-white dark:bg-[#111827] rounded-3xl p-8 md:p-12 shadow-xl border border-gray-100 dark:border-[#1F2937]">
+        <div className="mb-8 pb-8 border-b border-gray-100 dark:border-[#1F2937]">
           <div className="flex justify-between items-start gap-4 mb-4">
-            <h1 className="text-3xl md:text-4xl font-extrabold text-[#0B2C5F] shrink">{job.title}</h1>
+            <h1 className="text-3xl md:text-4xl font-extrabold text-[#0B2C5F] dark:text-white shrink">{job.title}</h1>
             <div className="flex items-center gap-2">
               <button 
                 onClick={handleShare}
-                className="relative group p-3 rounded-full shrink-0 transition-colors bg-gray-50 text-gray-500 hover:text-sira-blue hover:bg-blue-50 dark:bg-gray-700 dark:text-gray-400 dark:hover:bg-gray-600"
+                className="relative group p-3 rounded-full shrink-0 transition-colors bg-gray-50 text-gray-500 hover:text-sira-blue hover:bg-blue-50 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700"
                 aria-label="Share this job"
               >
                 <Share2 size={24} />
@@ -67,7 +106,7 @@ export function JobDetails() {
 
               <button 
                 onClick={() => toggleSavedJob(job.id)}
-                className={`relative group p-3 rounded-full shrink-0 transition-colors ${savedJobIds.includes(job.id) ? 'bg-sira-orange/10 text-sira-orange hover:bg-sira-orange/20' : 'bg-gray-50 text-gray-500 hover:bg-gray-100 dark:bg-gray-700 dark:text-gray-400 dark:hover:bg-gray-600'}`}
+                className={`relative group p-3 rounded-full shrink-0 transition-colors ${savedJobIds.includes(job.id) ? 'bg-sira-orange/15 text-sira-orange hover:bg-sira-orange/25' : 'bg-gray-50 text-gray-500 hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700'}`}
                 aria-label={savedJobIds.includes(job.id) ? "Remove from bookmarks" : "Save this job"}
               >
                 <Bookmark size={24} fill={savedJobIds.includes(job.id) ? 'currentColor' : 'none'} />
@@ -78,8 +117,8 @@ export function JobDetails() {
               </button>
             </div>
           </div>
-          <div className="flex flex-wrap items-center gap-6 text-gray-600">
-            <div className="flex items-center gap-2 font-medium text-gray-900">
+          <div className="flex flex-wrap items-center gap-6 text-gray-600 dark:text-gray-300">
+            <div className="flex items-center gap-2 font-medium text-gray-900 dark:text-white">
               <Building2 size={18} className="text-sira-blue" />
               <span>{job.company}</span>
             </div>
