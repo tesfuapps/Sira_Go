@@ -9,6 +9,12 @@ export interface UserProfile {
   createdAt: Timestamp | null | any;
   displayName?: string;
   phone?: string;
+  employerType?: 'company' | 'private';
+  companyName?: string;
+  companyIndustry?: string;
+  companyLocation?: string;
+  hasTradeLicense?: boolean;
+  privateActivityDescription?: string;
 }
 
 interface AuthContextType {
@@ -16,9 +22,9 @@ interface AuthContextType {
   profile: UserProfile | null;
   loading: boolean;
   signOut: () => Promise<void>;
-  createUserProfile: (role: 'employer' | 'seeker') => Promise<void>;
-  updateUserProfile: (data: { displayName?: string; phone?: string }) => Promise<void>;
-  loginManual: (username: string, role: 'admin' | 'employer' | 'seeker') => void;
+  createUserProfile: (role: 'employer' | 'seeker', extra?: Partial<UserProfile>) => Promise<void>;
+  updateUserProfile: (data: Partial<UserProfile>) => Promise<void>;
+  loginManual: (username: string, role: 'admin' | 'employer' | 'seeker', extra?: Partial<UserProfile>) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -40,6 +46,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           role: parsed.role,
           displayName: parsed.displayName,
           phone: parsed.phone,
+          employerType: parsed.employerType || (parsed.role === 'employer' ? 'company' : undefined),
+          companyName: parsed.companyName || (parsed.email === 'Comp1' ? 'TechCorp Ethiopia' : undefined),
+          companyIndustry: parsed.companyIndustry || (parsed.email === 'Comp1' ? 'Technology & Software' : undefined),
+          companyLocation: parsed.companyLocation || (parsed.email === 'Comp1' ? 'Addis Ababa (Bole)' : undefined),
+          hasTradeLicense: parsed.hasTradeLicense ?? (parsed.email === 'Comp1' ? true : undefined),
+          privateActivityDescription: parsed.privateActivityDescription,
           createdAt: null
         });
         setLoading(false);
@@ -84,26 +96,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const loginManual = (username: string, role: 'admin' | 'employer' | 'seeker') => {
-    const demoData = { email: username, role };
+  const loginManual = (username: string, role: 'admin' | 'employer' | 'seeker', extra?: Partial<UserProfile>) => {
+    const isComp1 = username.toLowerCase() === 'comp1';
+    const demoData: Partial<UserProfile> & { email: string; role: 'admin' | 'employer' | 'seeker' } = {
+      email: username,
+      role,
+      displayName: extra?.displayName || (isComp1 ? 'TechCorp Ethiopia HR' : username),
+      phone: extra?.phone || (isComp1 ? '+251911223344' : undefined),
+      employerType: extra?.employerType || (role === 'employer' ? 'company' : undefined),
+      companyName: extra?.companyName || (isComp1 ? 'TechCorp Ethiopia' : (role === 'employer' ? username : undefined)),
+      companyIndustry: extra?.companyIndustry || (isComp1 ? 'Technology & Software' : undefined),
+      companyLocation: extra?.companyLocation || (isComp1 ? 'Addis Ababa (Bole)' : undefined),
+      hasTradeLicense: extra?.hasTradeLicense ?? (isComp1 ? true : undefined),
+      privateActivityDescription: extra?.privateActivityDescription
+    };
     localStorage.setItem('sira_go_demo_user', JSON.stringify(demoData));
     setUser({ uid: username, email: username });
-    setProfile({ email: username, role, createdAt: null });
+    setProfile({ ...demoData, createdAt: null } as UserProfile);
   };
 
-  const createUserProfile = async (role: 'employer' | 'seeker') => {
+  const createUserProfile = async (role: 'employer' | 'seeker', extra?: Partial<UserProfile>) => {
     if (!user || profile) return;
     try {
-      const newUserProfile = {
+      const newUserProfile: any = {
         email: user.email || 'user',
         role,
         createdAt: serverTimestamp(),
+        ...(extra || {})
       };
       await setDoc(doc(db, 'users', user.uid), newUserProfile);
       setProfile({ ...newUserProfile, createdAt: null } as UserProfile);
       const docSnap = await getDoc(doc(db, 'users', user.uid));
       if (docSnap.exists()) {
-         setProfile(docSnap.data() as UserProfile);
+        setProfile(docSnap.data() as UserProfile);
       }
     } catch (error) {
       console.error("Failed to create user profile", error);
@@ -111,7 +136,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const updateUserProfile = async (data: { displayName?: string; phone?: string }) => {
+  const updateUserProfile = async (data: Partial<UserProfile>) => {
     if (!user) return;
     const isDemoMode = !!localStorage.getItem('sira_go_demo_user');
     if (isDemoMode) {
@@ -119,20 +144,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const current = stored ? JSON.parse(stored) : {};
       const updated = {
         ...current,
-        displayName: data.displayName || undefined,
-        phone: data.phone || undefined,
+        ...data,
       };
       localStorage.setItem('sira_go_demo_user', JSON.stringify(updated));
-      setProfile(prev => prev ? { ...prev, displayName: data.displayName, phone: data.phone } : null);
+      setProfile(prev => prev ? { ...prev, ...data } : null);
       return;
     }
 
     const userRef = doc(db, 'users', user.uid);
-    await updateDoc(userRef, {
-      displayName: data.displayName || null,
-      phone: data.phone || null,
+    const updatePayload: Record<string, any> = {};
+    Object.entries(data).forEach(([key, val]) => {
+      if (val !== undefined) {
+        updatePayload[key] = val;
+      }
     });
-    setProfile(prev => prev ? { ...prev, displayName: data.displayName, phone: data.phone } : null);
+
+    await updateDoc(userRef, updatePayload);
+    setProfile(prev => prev ? { ...prev, ...data } : null);
   };
 
   return (

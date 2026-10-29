@@ -22,6 +22,9 @@ const AuthHub = lazy(() => import('./pages/AuthHub').then(m => ({ default: m.Aut
 const AuthSeeker = lazy(() => import('./pages/AuthSeeker').then(m => ({ default: m.AuthSeeker })));
 const AuthEmployer = lazy(() => import('./pages/AuthEmployer').then(m => ({ default: m.AuthEmployer })));
 const AdminLogin = lazy(() => import('./pages/AdminLogin').then(m => ({ default: m.AdminLogin })));
+const TalentDirectory = lazy(() => import('./pages/TalentDirectory').then(m => ({ default: m.TalentDirectory })));
+const TalentDetails = lazy(() => import('./pages/TalentDetails').then(m => ({ default: m.TalentDetails })));
+const PostPortfolio = lazy(() => import('./pages/PostPortfolio').then(m => ({ default: m.PostPortfolio })));
 const NotFound = lazy(() => import('./pages/NotFound').then(m => ({ default: m.NotFound })));
 
 function PageLoader() {
@@ -43,6 +46,9 @@ export default function App() {
                 <Suspense fallback={<PageLoader />}>
                   <Routes>
                     <Route path="/" element={<Home />} />
+                    <Route path="/talent" element={<TalentDirectory />} />
+                    <Route path="/talent/:id" element={<TalentDetails />} />
+                    <Route path="/post-portfolio" element={<PostPortfolio />} />
                     <Route path="/how-it-works" element={<HowItWorks />} />
                     <Route path="/why-us" element={<WhyChooseUs />} />
                     <Route path="/employer" element={<EmployerDashboard />} />

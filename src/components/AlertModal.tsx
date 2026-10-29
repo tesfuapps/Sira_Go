@@ -119,7 +119,7 @@ export function AlertModal({ isOpen, onClose, initialKeyword = '', initialCatego
                   required
                   value={keyword}
                   onChange={(e) => setKeyword(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-gray-50 dark:bg-[#1F2937]/50 border border-gray-200 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-sira-blue text-gray-900 dark:text-white transition-all"
+                  className="w-full px-4 py-2.5 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 border border-zinc-300 dark:border-zinc-700 focus:ring-2 focus:ring-emerald-500 focus:outline-none rounded-xl text-sm transition-all"
                   placeholder="e.g. React Developer, Marketing Manager"
                 />
               </div>
@@ -129,7 +129,7 @@ export function AlertModal({ isOpen, onClose, initialKeyword = '', initialCatego
                 <select
                   value={category}
                   onChange={(e) => setCategory(e.target.value as JobCategory | 'All')}
-                  className="w-full px-4 py-2.5 bg-gray-50 dark:bg-[#1F2937]/50 border border-gray-200 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-sira-blue text-gray-900 dark:text-white transition-all"
+                  className="w-full px-4 py-2.5 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 border border-zinc-300 dark:border-zinc-700 focus:ring-2 focus:ring-emerald-500 focus:outline-none rounded-xl text-sm transition-all"
                 >
                   <option value="All" className="dark:bg-[#111827]">All Categories</option>
                   <option value="Developers" className="dark:bg-[#111827]">Developers</option>
@@ -175,7 +175,7 @@ export function AlertModal({ isOpen, onClose, initialKeyword = '', initialCatego
                   required
                   value={contact}
                   onChange={(e) => setContact(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-gray-50 dark:bg-[#1F2937]/50 border border-gray-200 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-sira-blue text-gray-900 dark:text-white transition-all"
+                  className="w-full px-4 py-2.5 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 border border-zinc-300 dark:border-zinc-700 focus:ring-2 focus:ring-emerald-500 focus:outline-none rounded-xl text-sm transition-all"
                   placeholder={notifyVia === 'email' ? 'name@example.com' : '@username or +251...'}
                 />
               </div>
@@ -186,7 +186,7 @@ export function AlertModal({ isOpen, onClose, initialKeyword = '', initialCatego
                   type="text" 
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-gray-50 dark:bg-[#1F2937]/50 border border-gray-200 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-sira-blue text-gray-900 dark:text-white transition-all"
+                  className="w-full px-4 py-2.5 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 border border-zinc-300 dark:border-zinc-700 focus:ring-2 focus:ring-emerald-500 focus:outline-none rounded-xl text-sm transition-all"
                   placeholder="e.g. Addis Ababa, Remote"
                 />
               </div>

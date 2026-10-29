@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, Edit2, Trash2, Zap, Loader2, AlertCircle } from 'lucide-react';
+import { Plus, Edit2, Trash2, Zap, Loader2, AlertCircle, Eye } from 'lucide-react';
 import { useJobs } from '../context/JobContext';
 import { useAuth } from '../context/AuthContext';
 import { JobStatus, Job, JobCategory } from '../types';
@@ -177,19 +177,21 @@ What we're looking for:
                 <th className="font-medium p-4 pl-6">Job Title</th>
                 <th className="font-medium p-4">Posted Date</th>
                 <th className="font-medium p-4">Status</th>
+                <th className="font-medium p-4 text-center">Views</th>
+                <th className="font-medium p-4 text-center">Clicks</th>
                 <th className="font-medium p-4 pr-6 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
               {jobsLoading ? (
                 <tr>
-                  <td colSpan={4} className="p-8 text-center">
+                  <td colSpan={6} className="p-8 text-center">
                     <Loader2 size={32} className="animate-spin text-sira-blue mx-auto" />
                   </td>
                 </tr>
               ) : jobsError ? (
                 <tr>
-                  <td colSpan={4} className="p-8 text-center">
+                  <td colSpan={6} className="p-8 text-center">
                     <div className="flex items-center justify-center gap-2 text-red-600 dark:text-red-400">
                       <AlertCircle size={20} />
                       <span>{jobsError}</span>
@@ -198,7 +200,7 @@ What we're looking for:
                 </tr>
               ) : myJobs.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="p-8 text-center text-gray-500 dark:text-gray-400">
+                  <td colSpan={6} className="p-8 text-center text-gray-500 dark:text-gray-400">
                     No jobs posted yet. <Link to="/employer/post" className="text-sira-blue hover:underline">Post your first job</Link>.
                   </td>
                 </tr>
@@ -214,6 +216,20 @@ What we're looking for:
                     <td className="p-4 text-gray-500 dark:text-gray-400 text-sm">{new Date(job.createdAt).toLocaleDateString()}</td>
                     <td className="p-4">
                       <StatusBadge status={job.status} />
+                    </td>
+                    {/* Views counter */}
+                    <td className="p-4 text-center">
+                      <span className="inline-flex items-center justify-center gap-1 text-sm text-slate-600 dark:text-gray-400">
+                        <Eye size={14} className="text-blue-500" />
+                        {job.viewCount ?? 0}
+                      </span>
+                    </td>
+                    {/* Apply-click counter */}
+                    <td className="p-4 text-center">
+                      <span className="inline-flex items-center justify-center gap-1 text-sm text-slate-600 dark:text-gray-400">
+                        <Zap size={14} className="text-sira-orange" />
+                        {job.applyClickCount ?? 0}
+                      </span>
                     </td>
                     <td className="p-4 pr-6">
                       <div className="flex items-center justify-end gap-2">

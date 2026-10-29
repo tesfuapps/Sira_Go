@@ -1,9 +1,11 @@
 import React, { useState, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useJobs } from '../context/JobContext';
+import { useAuth } from '../context/AuthContext';
 import { JobCard } from '../components/JobCard';
+import { TalentCard } from '../components/TalentCard';
 import { AlertModal } from '../components/AlertModal';
-import { Zap, Search, Bell, ChevronDown, AlertCircle, MapPin, Briefcase, Building, Users, TrendingUp, Code, Palette, Megaphone, DollarSign, Cpu, HeartPulse, GraduationCap, ArrowRight, SlidersHorizontal, RotateCcw } from 'lucide-react';
+import { Zap, Search, Bell, ChevronDown, AlertCircle, MapPin, Briefcase, Building, Users, TrendingUp, Code, Palette, Megaphone, DollarSign, Cpu, HeartPulse, ArrowRight, SlidersHorizontal, RotateCcw, Sparkles, Send } from 'lucide-react';
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { motion } from 'motion/react';
@@ -12,7 +14,8 @@ import { JobCategory } from '../types';
 import { isJobExpired, parseSalary } from '../lib/utils';
 
 export function Home() {
-  const { jobs, jobsLoading, jobsError } = useJobs();
+  const { jobs, jobsLoading, jobsError, talents } = useJobs();
+  const { user, profile } = useAuth();
   const navigate = useNavigate();
   const [seeding, setSeeding] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -82,6 +85,12 @@ export function Home() {
     return result;
   }, [approvedJobs, searchQuery, locationQuery, categoryFilter, dateFilter, salaryRange, showExpired]);
 
+  const featuredTalents = useMemo(() => {
+    const approved = (talents || []).filter(t => t.status === 'Approved');
+    const featured = approved.filter(t => t.isFeatured);
+    return featured.length > 0 ? featured.slice(0, 4) : approved.slice(0, 4);
+  }, [talents]);
+
   const handleResetFilters = () => {
     setSearchQuery('');
     setLocationQuery('All');
@@ -124,6 +133,8 @@ export function Home() {
             status: 'Approved',
             employerId: 'admin-seed',
             createdAt: new Date().toISOString(),
+            viewCount: Math.floor(Math.random() * 150 + 40),
+            applyClickCount: Math.floor(Math.random() * 30 + 5),
             applyMethod: {
               type: Math.random() > 0.5 ? 'telegram' : 'link',
               value: Math.random() > 0.5 ? '@hr_contact' : 'https://example.com/apply'
@@ -147,6 +158,8 @@ export function Home() {
             status: 'Approved',
             employerId: 'admin-seed',
             createdAt: serverTimestamp(),
+            viewCount: Math.floor(Math.random() * 150 + 40),
+            applyClickCount: Math.floor(Math.random() * 30 + 5),
             applyMethod: {
               type: Math.random() > 0.5 ? 'telegram' : 'link',
               value: Math.random() > 0.5 ? '@hr_contact' : 'https://example.com/apply'
@@ -173,18 +186,109 @@ export function Home() {
   ];
 
   return (
-    <div className="flex flex-col gap-16 pb-20 max-w-7xl mx-auto">
+    <div className="flex flex-col gap-12 sm:gap-16 pb-20 max-w-7xl mx-auto">
+      {/* AGR-019: Employer Hiring Hub & Guide Section */}
+      {user && profile?.role === 'employer' && (
+        <motion.section 
+          initial={{ opacity: 0, y: -15 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="p-6 sm:p-8 bg-gradient-to-br from-[#0B2C5F] via-[#0F3A7D] to-[#0A1E3D] rounded-3xl text-white shadow-2xl relative overflow-hidden border border-blue-400/20"
+        >
+          <div className="relative z-10">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+              <div>
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-orange-500/20 text-sira-orange border border-orange-500/30">
+                  <Sparkles size={12} />
+                  <span>Employer Hiring Hub</span>
+                </span>
+                <h2 className="text-xl sm:text-2xl font-extrabold mt-2 text-white">
+                  Welcome back, {profile.displayName || profile.companyName || 'Employer'}
+                </h2>
+                <p className="text-xs sm:text-sm text-blue-200 mt-0.5">
+                  Your smart pipeline for posting roles, broadcasting to Telegram, and scouting vetted Ethiopian talent.
+                </p>
+              </div>
+              <Link
+                to="/employer/post"
+                className="self-start sm:self-auto inline-flex items-center gap-2 px-5 py-3 bg-sira-orange text-black font-extrabold text-sm rounded-2xl shadow-lg hover:bg-[#E66E00] transition transform hover:-translate-y-0.5"
+              >
+                + Post a Job
+              </Link>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="bg-white/10 backdrop-blur-md p-5 rounded-2xl border border-white/10 flex flex-col justify-between hover:bg-white/15 transition">
+                <div>
+                  <div className="w-10 h-10 rounded-xl bg-blue-500/20 text-blue-300 flex items-center justify-center text-xl font-bold mb-3">
+                    ⚡
+                  </div>
+                  <h3 className="font-extrabold text-base mb-1">1. Post in 60 Seconds</h3>
+                  <p className="text-xs text-blue-100/80 leading-relaxed">
+                    Auto-fills your company or private profile with 1-tap role templates and ETB salary presets.
+                  </p>
+                </div>
+                <Link
+                  to="/employer/post"
+                  className="mt-4 inline-flex items-center gap-1 text-xs font-bold text-sira-orange hover:text-white transition"
+                >
+                  <span>+ Post a Job</span>
+                  <ArrowRight size={14} />
+                </Link>
+              </div>
+
+              <div className="bg-white/10 backdrop-blur-md p-5 rounded-2xl border border-white/10 flex flex-col justify-between hover:bg-white/15 transition">
+                <div>
+                  <div className="w-10 h-10 rounded-xl bg-sky-500/20 text-sky-300 flex items-center justify-center text-xl font-bold mb-3">
+                    📢
+                  </div>
+                  <h3 className="font-extrabold text-base mb-1">2. Instant Telegram Broadcast</h3>
+                  <p className="text-xs text-blue-100/80 leading-relaxed">
+                    Once approved by admin, your listings syndicate automatically to SiraGo's active Telegram channels.
+                  </p>
+                </div>
+                <Link
+                  to="/employer"
+                  className="mt-4 inline-flex items-center gap-1 text-xs font-bold text-sky-300 hover:text-white transition"
+                >
+                  <span>Manage Listings</span>
+                  <ArrowRight size={14} />
+                </Link>
+              </div>
+
+              <div className="bg-white/10 backdrop-blur-md p-5 rounded-2xl border border-white/10 flex flex-col justify-between hover:bg-white/15 transition">
+                <div>
+                  <div className="w-10 h-10 rounded-xl bg-purple-500/20 text-purple-300 flex items-center justify-center text-xl font-bold mb-3">
+                    🎯
+                  </div>
+                  <h3 className="font-extrabold text-base mb-1">3. Scout Verified Talent</h3>
+                  <p className="text-xs text-blue-100/80 leading-relaxed">
+                    Browse Graphic Designers, Video Creators, and Web Developers with visual portfolios.
+                  </p>
+                </div>
+                <Link
+                  to="/talent"
+                  className="mt-4 inline-flex items-center gap-1 text-xs font-bold text-purple-300 hover:text-white transition"
+                >
+                  <span>Explore Talent</span>
+                  <ArrowRight size={14} />
+                </Link>
+              </div>
+            </div>
+          </div>
+        </motion.section>
+      )}
+
       {/* Hero Section */}
       <motion.section 
         initial={{ opacity: 0, y: 25 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.7, ease: 'easeOut' }}
-        className="flex flex-col gap-8 text-center max-w-4xl mx-auto pt-12 md:pt-16 relative"
+        className="flex flex-col gap-8 text-center max-w-4xl mx-auto pt-4 md:pt-10 relative"
       >
         <button 
           onClick={handleSeedJobs}
           disabled={seeding}
-          className="absolute -top-2 right-0 flex items-center gap-1.5 bg-gray-800 text-gray-300 px-4 py-2 rounded-xl text-xs font-bold hover:bg-gray-700 hover:text-sira-orange transition-colors disabled:opacity-50 shadow-md cursor-pointer border border-gray-700"
+          className="absolute -top-2 right-0 flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-sira-orange border border-slate-300 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 dark:border-gray-700 px-4 py-2 rounded-xl text-xs font-bold transition-colors disabled:opacity-50 shadow-md cursor-pointer"
           title="Generate 5 demo jobs"
         >
           <Zap size={14} className={seeding ? "animate-spin text-sira-orange" : "text-sira-orange"} />
@@ -196,7 +300,7 @@ export function Home() {
             initial={{ scale: 0.95, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ delay: 0.2, duration: 0.5 }}
-            className="inline-flex items-center gap-2 px-4 py-1.5 bg-blue-600/10 border border-blue-500/30 rounded-full text-blue-400 text-sm font-extrabold shadow-sm"
+            className="inline-flex items-center gap-2 px-4 py-1.5 bg-blue-600/10 border border-blue-500/30 rounded-full text-blue-600 dark:text-blue-400 text-sm font-extrabold shadow-sm"
           >
             <span className="w-2 h-2 rounded-full bg-sira-orange animate-ping" />
             Ethiopia's Premier Job Marketplace
@@ -206,17 +310,17 @@ export function Home() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3, duration: 0.6 }}
-            className="text-4xl sm:text-6xl md:text-7xl font-extrabold text-white leading-[1.1] tracking-tight"
+            className="text-4xl sm:text-6xl md:text-7xl font-extrabold text-slate-900 dark:text-white leading-[1.1] tracking-tight"
           >
             Find Jobs.<br />
-            <span className="bg-gradient-to-r from-blue-400 via-blue-500 to-sira-orange bg-clip-text text-transparent">Build Your Future.</span>
+            <span className="bg-gradient-to-r from-blue-600 via-blue-500 to-sira-orange bg-clip-text text-transparent">Build Your Future.</span>
           </motion.h1>
 
           <motion.p 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4, duration: 0.6 }}
-            className="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto font-medium"
+            className="text-lg md:text-xl text-slate-600 dark:text-gray-400 max-w-2xl mx-auto font-medium"
           >
             Discover opportunities from companies and organizations across Ethiopia. Find the right opportunity and take your next step.
           </motion.p>
@@ -227,38 +331,38 @@ export function Home() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5, duration: 0.6 }}
-          className="w-full bg-[#111827] border border-[#1F2937] p-3 sm:p-4 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] flex flex-col md:flex-row gap-3 items-center"
+          className="w-full bg-white dark:bg-[#111827] border border-slate-200 dark:border-[#1F2937] p-3 sm:p-4 rounded-3xl shadow-xl dark:shadow-[0_20px_50px_rgba(0,0,0,0.5)] flex flex-col md:flex-row gap-3 items-center"
         >
-          <div className="relative flex-1 w-full flex items-center px-4 py-3 bg-[#1F2937]/50 rounded-2xl border border-gray-700/50 focus-within:border-blue-500 transition-colors">
-            <Search size={20} className="text-gray-400 mr-3 shrink-0" />
+          <div className="relative flex-1 w-full flex items-center px-4 py-3 bg-slate-50 dark:bg-[#1F2937]/50 rounded-2xl border border-slate-200 dark:border-gray-700/50 focus-within:border-blue-500 transition-colors">
+            <Search size={20} className="text-slate-400 dark:text-gray-400 mr-3 shrink-0" />
             <div className="flex flex-col w-full text-left">
-              <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">What</span>
+              <span className="text-[11px] font-bold text-slate-500 dark:text-gray-400 uppercase tracking-wider">What</span>
               <input
                 type="text"
                 placeholder="Job title, skill or keyword"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="bg-transparent text-white placeholder-gray-500 text-sm font-semibold focus:outline-none w-full"
+                className="bg-transparent text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder-gray-500 text-sm font-semibold focus:outline-none w-full"
               />
             </div>
           </div>
 
-          <div className="relative flex-1 w-full flex items-center px-4 py-3 bg-[#1F2937]/50 rounded-2xl border border-gray-700/50 focus-within:border-blue-500 transition-colors">
-            <MapPin size={20} className="text-gray-400 mr-3 shrink-0" />
+          <div className="relative flex-1 w-full flex items-center px-4 py-3 bg-slate-50 dark:bg-[#1F2937]/50 rounded-2xl border border-slate-200 dark:border-gray-700/50 focus-within:border-blue-500 transition-colors">
+            <MapPin size={20} className="text-slate-400 dark:text-gray-400 mr-3 shrink-0" />
             <div className="flex flex-col w-full text-left">
-              <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Where</span>
+              <span className="text-[11px] font-bold text-slate-500 dark:text-gray-400 uppercase tracking-wider">Where</span>
               <select
                 value={locationQuery}
                 onChange={(e) => setLocationQuery(e.target.value)}
-                className="bg-transparent text-white text-sm font-semibold focus:outline-none w-full cursor-pointer"
+                className="bg-transparent text-slate-900 dark:text-white text-sm font-semibold focus:outline-none w-full cursor-pointer"
               >
-                <option value="All" className="bg-[#111827]">All Locations (Ethiopia)</option>
-                <option value="Addis Ababa" className="bg-[#111827]">Addis Ababa</option>
-                <option value="Remote" className="bg-[#111827]">Remote</option>
-                <option value="Adama" className="bg-[#111827]">Adama</option>
-                <option value="Hawassa" className="bg-[#111827]">Hawassa</option>
-                <option value="Bahir Dar" className="bg-[#111827]">Bahir Dar</option>
-                <option value="Mekelle" className="bg-[#111827]">Mekelle</option>
+                <option value="All" className="bg-white text-slate-900 dark:bg-[#111827] dark:text-white">All Locations (Ethiopia)</option>
+                <option value="Addis Ababa" className="bg-white text-slate-900 dark:bg-[#111827] dark:text-white">Addis Ababa</option>
+                <option value="Remote" className="bg-white text-slate-900 dark:bg-[#111827] dark:text-white">Remote</option>
+                <option value="Adama" className="bg-white text-slate-900 dark:bg-[#111827] dark:text-white">Adama</option>
+                <option value="Hawassa" className="bg-white text-slate-900 dark:bg-[#111827] dark:text-white">Hawassa</option>
+                <option value="Bahir Dar" className="bg-white text-slate-900 dark:bg-[#111827] dark:text-white">Bahir Dar</option>
+                <option value="Mekelle" className="bg-white text-slate-900 dark:bg-[#111827] dark:text-white">Mekelle</option>
               </select>
             </div>
           </div>
@@ -274,12 +378,12 @@ export function Home() {
 
         {/* Quick Filter Pills & Controls */}
         <div className="flex flex-wrap items-center justify-center gap-2 text-xs font-bold">
-          <span className="text-gray-500 mr-1">Popular:</span>
+          <span className="text-slate-500 dark:text-gray-500 mr-1">Popular:</span>
           {['Remote', 'Full Time', 'Part Time', 'Internship', 'Entry Level'].map((pill) => (
             <button
               key={pill}
               onClick={() => setSearchQuery(pill)}
-              className="px-3.5 py-1.5 bg-[#111827] hover:bg-[#1F2937] text-gray-300 border border-[#1F2937] rounded-full transition-colors cursor-pointer"
+              className="px-3.5 py-1.5 bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 dark:bg-[#111827] dark:hover:bg-[#1F2937] dark:text-gray-300 dark:border-[#1F2937] rounded-full transition-colors cursor-pointer shadow-sm"
             >
               {pill}
             </button>
@@ -289,8 +393,8 @@ export function Home() {
             onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
             className={`px-3.5 py-1.5 rounded-full transition-all flex items-center gap-1.5 cursor-pointer border ${
               showAdvancedFilters || dateFilter !== 'Any' || salaryRange.min || salaryRange.max || showExpired
-                ? 'bg-blue-600/20 border-blue-500 text-blue-400'
-                : 'bg-[#111827] hover:bg-[#1F2937] text-gray-300 border-[#1F2937]'
+                ? 'bg-blue-600/20 border-blue-500 text-blue-600 dark:text-blue-400'
+                : 'bg-white hover:bg-slate-100 text-slate-700 border-slate-200 dark:bg-[#111827] dark:hover:bg-[#1F2937] dark:text-gray-300 dark:border-[#1F2937]'
             }`}
           >
             <SlidersHorizontal size={12} />
@@ -312,16 +416,16 @@ export function Home() {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="w-full bg-[#111827] border border-[#1F2937] rounded-3xl p-6 text-left shadow-2xl space-y-4"
+            className="w-full bg-white dark:bg-[#111827] border border-slate-200 dark:border-[#1F2937] rounded-3xl p-6 text-left shadow-2xl space-y-4"
           >
-            <div className="flex items-center justify-between border-b border-[#1F2937] pb-3">
-              <h4 className="text-sm font-extrabold text-white flex items-center gap-2">
-                <SlidersHorizontal size={16} className="text-blue-400" />
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-[#1F2937] pb-3">
+              <h4 className="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+                <SlidersHorizontal size={16} className="text-blue-500 dark:text-blue-400" />
                 Refine Your Search
               </h4>
               <button
                 onClick={handleResetFilters}
-                className="text-xs text-gray-400 hover:text-white flex items-center gap-1 cursor-pointer font-bold"
+                className="text-xs text-slate-500 hover:text-slate-900 dark:text-gray-400 dark:hover:text-white flex items-center gap-1 cursor-pointer font-bold"
               >
                 <RotateCcw size={12} /> Reset All
               </button>
@@ -329,7 +433,7 @@ export function Home() {
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
               <div>
-                <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
+                <label className="block text-xs font-bold text-slate-600 dark:text-gray-400 uppercase tracking-wider mb-2">
                   Date Posted
                 </label>
                 <div className="grid grid-cols-2 gap-1.5">
@@ -341,7 +445,7 @@ export function Home() {
                       className={`px-3 py-2 text-xs font-bold rounded-xl border transition-colors cursor-pointer ${
                         dateFilter === df
                           ? 'bg-blue-600 text-white border-blue-500'
-                          : 'bg-[#1F2937]/50 text-gray-400 border-gray-700/60 hover:text-white'
+                          : 'bg-slate-50 text-slate-700 border-slate-200 hover:text-slate-950 dark:bg-[#1F2937]/50 dark:text-gray-400 dark:border-gray-700/60 dark:hover:text-white'
                       }`}
                     >
                       {df === 'Any' ? 'Anytime' : df === '24h' ? 'Past 24h' : df === 'Week' ? 'Past Week' : 'Past Month'}
@@ -351,7 +455,7 @@ export function Home() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
+                <label className="block text-xs font-bold text-slate-600 dark:text-gray-400 uppercase tracking-wider mb-2">
                   Salary Range (ETB)
                 </label>
                 <div className="flex items-center gap-2">
@@ -360,31 +464,31 @@ export function Home() {
                     placeholder="Min (e.g. 20000)"
                     value={salaryRange.min}
                     onChange={(e) => setSalaryRange(prev => ({ ...prev, min: e.target.value }))}
-                    className="w-full bg-[#1F2937]/50 border border-gray-700/60 rounded-xl px-3 py-2 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
+                    className="w-full bg-slate-50 dark:bg-[#1F2937]/50 border border-slate-200 dark:border-gray-700/60 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder-gray-500 focus:outline-none focus:border-blue-500"
                   />
-                  <span className="text-gray-500 font-bold">-</span>
+                  <span className="text-slate-400 font-bold">-</span>
                   <input
                     type="number"
                     placeholder="Max (e.g. 80000)"
                     value={salaryRange.max}
                     onChange={(e) => setSalaryRange(prev => ({ ...prev, max: e.target.value }))}
-                    className="w-full bg-[#1F2937]/50 border border-gray-700/60 rounded-xl px-3 py-2 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
+                    className="w-full bg-slate-50 dark:bg-[#1F2937]/50 border border-slate-200 dark:border-gray-700/60 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder-gray-500 focus:outline-none focus:border-blue-500"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
+                <label className="block text-xs font-bold text-slate-600 dark:text-gray-400 uppercase tracking-wider mb-2">
                   Options
                 </label>
-                <label className="flex items-center gap-2 p-2.5 bg-[#1F2937]/40 border border-gray-700/60 rounded-xl cursor-pointer hover:bg-[#1F2937]/70 transition-colors">
+                <label className="flex items-center gap-2 p-2.5 bg-slate-50 dark:bg-[#1F2937]/40 border border-slate-200 dark:border-gray-700/60 rounded-xl cursor-pointer hover:bg-slate-100 dark:hover:bg-[#1F2937]/70 transition-colors">
                   <input
                     type="checkbox"
                     checked={showExpired}
                     onChange={(e) => setShowExpired(e.target.checked)}
-                    className="rounded text-blue-600 focus:ring-0 bg-[#111827] border-gray-600 w-4 h-4 cursor-pointer"
+                    className="rounded text-blue-600 focus:ring-0 bg-white dark:bg-[#111827] border-slate-300 dark:border-gray-600 w-4 h-4 cursor-pointer"
                   />
-                  <span className="text-xs text-gray-300 font-bold">Include Expired Listings</span>
+                  <span className="text-xs text-slate-700 dark:text-gray-300 font-bold">Include Expired Listings</span>
                 </label>
               </div>
             </div>
@@ -398,22 +502,22 @@ export function Home() {
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
         transition={{ duration: 0.6 }}
-        className="grid grid-cols-2 md:grid-cols-4 gap-4 p-8 bg-[#111827] border border-[#1F2937] rounded-3xl shadow-xl"
+        className="grid grid-cols-2 md:grid-cols-4 gap-4 p-8 bg-white dark:bg-[#111827] border border-slate-200 dark:border-[#1F2937] rounded-3xl shadow-xl"
       >
         {[
-          { label: 'Jobs Available', value: '10,000+', icon: Briefcase, color: 'text-blue-400' },
+          { label: 'Jobs Available', value: '10,000+', icon: Briefcase, color: 'text-blue-500' },
           { label: 'Active Companies', value: '2,500+', icon: Building, color: 'text-sira-orange' },
-          { label: 'Professionals', value: '50,000+', icon: Users, color: 'text-purple-400' },
-          { label: 'New Jobs Weekly', value: '100+', icon: TrendingUp, color: 'text-emerald-400' },
+          { label: 'Professionals', value: '50,000+', icon: Users, color: 'text-purple-500' },
+          { label: 'New Jobs Weekly', value: '100+', icon: TrendingUp, color: 'text-emerald-500' },
         ].map((stat, idx) => {
           const Icon = stat.icon;
           return (
             <div key={idx} className="flex flex-col items-center text-center p-4">
-              <div className={`p-3 rounded-2xl bg-gray-800/80 mb-3 ${stat.color}`}>
+              <div className={`p-3 rounded-2xl bg-slate-100 dark:bg-gray-800/80 mb-3 ${stat.color}`}>
                 <Icon size={24} />
               </div>
-              <h3 className="text-2xl md:text-3xl font-extrabold text-white mb-1">{stat.value}</h3>
-              <p className="text-xs md:text-sm font-semibold text-gray-400 uppercase tracking-wider">{stat.label}</p>
+              <h3 className="text-2xl md:text-3xl font-extrabold text-slate-900 dark:text-white mb-1">{stat.value}</h3>
+              <p className="text-xs md:text-sm font-semibold text-slate-500 dark:text-gray-400 uppercase tracking-wider">{stat.label}</p>
             </div>
           );
         })}
@@ -421,12 +525,12 @@ export function Home() {
 
       {/* Job Categories Section */}
       <section id="categories" className="w-full">
-        <div className="flex justify-between items-end mb-8 border-b border-[#1F2937] pb-4">
+        <div className="flex justify-between items-end mb-8 border-b border-slate-200 dark:border-[#1F2937] pb-4">
           <div>
-            <h2 className="text-2xl md:text-3xl font-extrabold text-white mb-1">Explore Opportunities</h2>
-            <p className="text-gray-400 font-semibold text-sm">Browse jobs by industry and expertise</p>
+            <h2 className="text-2xl md:text-3xl font-extrabold text-slate-900 dark:text-white mb-1">Explore Opportunities</h2>
+            <p className="text-slate-600 dark:text-gray-400 font-semibold text-sm">Browse jobs by industry and expertise</p>
           </div>
-          <Link to="/" onClick={() => setCategoryFilter('All')} className="text-xs font-extrabold text-blue-400 hover:underline flex items-center gap-1">
+          <Link to="/" onClick={() => setCategoryFilter('All')} className="text-xs font-extrabold text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1">
             View all <ArrowRight size={14} />
           </Link>
         </div>
@@ -443,19 +547,19 @@ export function Home() {
                 onClick={() => setCategoryFilter(cat.cat as JobCategory)}
                 className={`p-6 rounded-3xl border transition-all cursor-pointer flex flex-col justify-between group ${
                   isSelected 
-                    ? 'bg-blue-600/15 border-blue-500 text-white shadow-lg shadow-blue-500/10' 
-                    : 'bg-[#111827] border-[#1F2937] hover:border-blue-500/50 text-gray-200'
+                    ? 'bg-blue-600/15 border-blue-500 text-slate-900 dark:text-white shadow-lg shadow-blue-500/10' 
+                    : 'bg-white dark:bg-[#111827] border-slate-200 dark:border-[#1F2937] hover:border-blue-500/50 text-slate-800 dark:text-gray-200 shadow-sm'
                 }`}
               >
                 <div className="flex items-center justify-between mb-4">
-                  <div className="w-12 h-12 rounded-2xl bg-gray-800/80 border border-gray-700/80 flex items-center justify-center text-blue-400 group-hover:scale-110 transition-transform">
+                  <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-gray-800/80 border border-slate-200 dark:border-gray-700/80 flex items-center justify-center text-blue-600 dark:text-blue-400 group-hover:scale-110 transition-transform">
                     <Icon size={24} />
                   </div>
-                  <span className="text-xs font-bold text-gray-400">{cat.count}</span>
+                  <span className="text-xs font-bold text-slate-500 dark:text-gray-400">{cat.count}</span>
                 </div>
                 <div>
-                  <h3 className="font-extrabold text-lg text-white mb-1 group-hover:text-blue-400 transition-colors">{cat.label}</h3>
-                  <p className="text-xs text-gray-400 font-medium">Explore open roles</p>
+                  <h3 className="font-extrabold text-lg text-slate-900 dark:text-white mb-1 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{cat.label}</h3>
+                  <p className="text-xs text-slate-500 dark:text-gray-400 font-medium">Explore open roles</p>
                 </div>
               </motion.div>
             );
@@ -465,10 +569,10 @@ export function Home() {
 
       {/* Featured Jobs Section */}
       <section id="featured-jobs" className="scroll-mt-8 w-full">
-        <div className="flex justify-between items-end mb-8 border-b border-[#1F2937] pb-4">
+        <div className="flex justify-between items-end mb-8 border-b border-slate-200 dark:border-[#1F2937] pb-4">
           <div>
-            <h2 className="text-2xl md:text-3xl font-extrabold text-white mb-1">Featured Opportunities</h2>
-            <p className="text-gray-400 font-semibold text-sm">Hand-picked roles from top Ethiopian organizations</p>
+            <h2 className="text-2xl md:text-3xl font-extrabold text-slate-900 dark:text-white mb-1">Featured Opportunities</h2>
+            <p className="text-slate-600 dark:text-gray-400 font-semibold text-sm">Hand-picked roles from top Ethiopian organizations</p>
           </div>
           <span className="text-xs font-extrabold text-sira-orange uppercase tracking-wider bg-orange-500/10 px-3 py-1 rounded-full border border-orange-500/20">
             Featured
@@ -478,7 +582,7 @@ export function Home() {
         {jobsLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[...Array(3)].map((_, i) => (
-              <div key={i} className="bg-[#111827] border border-[#1F2937] rounded-3xl p-6 animate-pulse h-64"></div>
+              <div key={i} className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-[#1F2937] rounded-3xl p-6 animate-pulse h-64"></div>
             ))}
           </div>
         ) : (
@@ -490,27 +594,60 @@ export function Home() {
         )}
       </section>
 
+      {/* Featured Technical & Creative Talent Spotlight Section */}
+      {featuredTalents.length > 0 && (
+        <section className="w-full">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 border-b border-slate-200 dark:border-[#1F2937] pb-4 gap-4">
+            <div>
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-600/10 border border-blue-500/20 rounded-full text-blue-600 dark:text-blue-400 text-xs font-extrabold mb-2">
+                <Sparkles size={12} className="text-sira-orange" />
+                <span>Featured Creators</span>
+              </div>
+              <h2 className="text-2xl md:text-3xl font-extrabold text-slate-900 dark:text-white mb-1">
+                Featured Technical & Creative Talent
+              </h2>
+              <p className="text-slate-600 dark:text-gray-400 font-semibold text-sm">
+                Discover verified Ethiopian designers, developers, and visual creators open for hire
+              </p>
+            </div>
+            <Link
+              to="/talent"
+              className="text-xs font-extrabold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-white flex items-center gap-1.5 bg-white dark:bg-[#111827] border border-slate-200 dark:border-[#1F2937] hover:border-blue-500/40 px-4 py-2.5 rounded-xl transition-all self-start sm:self-auto cursor-pointer shadow-sm"
+            >
+              <span>View All Talent</span>
+              <ArrowRight size={14} />
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {featuredTalents.map((talent) => (
+              <TalentCard key={talent.id} talent={talent} />
+            ))}
+          </div>
+        </section>
+      )}
+
       {/* Latest Opportunities Section */}
       <section className="w-full">
-        <div className="flex justify-between items-end mb-8 border-b border-[#1F2937] pb-4">
+        <div className="flex justify-between items-end mb-8 border-b border-slate-200 dark:border-[#1F2937] pb-4">
           <div>
-            <h2 className="text-2xl md:text-3xl font-extrabold text-white mb-1">Latest Opportunities</h2>
-            <p className="text-gray-400 font-semibold text-sm">Browse all open positions in ETB</p>
+            <h2 className="text-2xl md:text-3xl font-extrabold text-slate-900 dark:text-white mb-1">Latest Opportunities</h2>
+            <p className="text-slate-600 dark:text-gray-400 font-semibold text-sm">Browse all open positions in ETB</p>
           </div>
-          <span className="text-sm font-extrabold text-blue-400">{filteredJobs.length} available</span>
+          <span className="text-sm font-extrabold text-blue-600 dark:text-blue-400">{filteredJobs.length} available</span>
         </div>
 
         {jobsLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[...Array(6)].map((_, i) => (
-              <div key={i} className="bg-[#111827] border border-[#1F2937] rounded-3xl p-6 animate-pulse h-64"></div>
+              <div key={i} className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-[#1F2937] rounded-3xl p-6 animate-pulse h-64"></div>
             ))}
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredJobs.length === 0 ? (
-              <div className="col-span-1 md:col-span-2 lg:col-span-3 py-16 text-center bg-[#111827] rounded-3xl border border-dashed border-[#1F2937]">
-                <p className="text-gray-300 font-bold text-lg mb-2">No opportunities found matching your search.</p>
+              <div className="col-span-1 md:col-span-2 lg:col-span-3 py-16 text-center bg-white dark:bg-[#111827] rounded-3xl border border-dashed border-slate-300 dark:border-[#1F2937]">
+                <p className="text-slate-700 dark:text-gray-300 font-bold text-lg mb-2">No opportunities found matching your search.</p>
                 <button onClick={handleResetFilters} className="px-6 py-2.5 bg-blue-600 text-white rounded-xl font-bold text-sm">Reset Filters</button>
               </div>
             ) : (

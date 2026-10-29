@@ -118,7 +118,7 @@ export function AuthSeeker() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full border border-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-sira-orange focus:border-transparent transition-all"
+              className="w-full px-4 py-3 rounded-xl bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 border border-zinc-300 dark:border-zinc-700 focus:ring-2 focus:ring-emerald-500 focus:outline-none text-sm transition-all"
               placeholder="User01"
             />
           </div>
@@ -129,7 +129,7 @@ export function AuthSeeker() {
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full border border-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-sira-orange focus:border-transparent transition-all"
+              className="w-full px-4 py-3 rounded-xl bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 border border-zinc-300 dark:border-zinc-700 focus:ring-2 focus:ring-emerald-500 focus:outline-none text-sm transition-all"
               placeholder="12345"
             />
           </div>

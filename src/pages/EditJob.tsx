@@ -99,17 +99,39 @@ export function EditJob() {
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Job Title</label>
-              <input required name="title" value={formData.title} onChange={handleChange} type="text" className="w-full px-4 py-3 rounded-xl bg-white text-gray-900 border border-gray-300 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-sira-blue focus:border-transparent transition-all dark:bg-gray-800 dark:text-gray-100 dark:border-gray-600 dark:placeholder-gray-500" placeholder="e.g. Senior Frontend Developer" />
+              <input 
+                required 
+                name="title" 
+                value={formData.title} 
+                onChange={handleChange} 
+                type="text" 
+                className="w-full px-4 py-3 rounded-xl bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 border border-zinc-300 dark:border-zinc-700 focus:ring-2 focus:ring-emerald-500 focus:outline-none text-sm transition-all" 
+                placeholder="e.g. Senior Frontend Developer" 
+              />
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Company Name</label>
-                <input required name="company" value={formData.company} onChange={handleChange} type="text" className="w-full px-4 py-3 rounded-xl bg-white text-gray-900 border border-gray-300 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-sira-blue focus:border-transparent transition-all dark:bg-gray-800 dark:text-gray-100 dark:border-gray-600 dark:placeholder-gray-500" placeholder="Your company" />
+                <input 
+                  required 
+                  name="company" 
+                  value={formData.company} 
+                  onChange={handleChange} 
+                  type="text" 
+                  className="w-full px-4 py-3 rounded-xl bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 border border-zinc-300 dark:border-zinc-700 focus:ring-2 focus:ring-emerald-500 focus:outline-none text-sm transition-all" 
+                  placeholder="Your company" 
+                />
               </div>
               <div>
                 <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Category</label>
-                <select required name="category" value={formData.category} onChange={handleChange} className="w-full px-4 py-3 rounded-xl bg-white text-gray-900 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-sira-blue focus:border-transparent transition-all dark:bg-gray-800 dark:text-gray-100 dark:border-gray-600">
+                <select 
+                  required 
+                  name="category" 
+                  value={formData.category} 
+                  onChange={handleChange} 
+                  className="w-full px-4 py-3 rounded-xl bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 border border-zinc-300 dark:border-zinc-700 focus:ring-2 focus:ring-emerald-500 focus:outline-none text-sm transition-all"
+                >
                   <option value="Developers">Developers</option>
                   <option value="Creatives">Creatives</option>
                   <option value="Finance">Finance</option>
@@ -124,29 +146,66 @@ export function EditJob() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Location</label>
-                <input required name="location" value={formData.location} onChange={handleChange} type="text" className="w-full px-4 py-3 rounded-xl bg-white text-gray-900 border border-gray-300 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-sira-blue focus:border-transparent transition-all dark:bg-gray-800 dark:text-gray-100 dark:border-gray-600 dark:placeholder-gray-500" placeholder="e.g. Addis Ababa or Remote" />
+                <input 
+                  required 
+                  name="location" 
+                  value={formData.location} 
+                  onChange={handleChange} 
+                  type="text" 
+                  className="w-full px-4 py-3 rounded-xl bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 border border-zinc-300 dark:border-zinc-700 focus:ring-2 focus:ring-emerald-500 focus:outline-none text-sm transition-all" 
+                  placeholder="e.g. Addis Ababa or Remote" 
+                />
               </div>
               <div>
                 <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Salary <span className="font-normal text-gray-400">(Optional)</span></label>
-                <input name="salary" value={formData.salary} onChange={handleChange} type="text" className="w-full px-4 py-3 rounded-xl bg-white text-gray-900 border border-gray-300 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-sira-blue focus:border-transparent transition-all dark:bg-gray-800 dark:text-gray-100 dark:border-gray-600 dark:placeholder-gray-500" placeholder="e.g. 50,000 ETB" />
+                <input 
+                  name="salary" 
+                  value={formData.salary} 
+                  onChange={handleChange} 
+                  type="text" 
+                  className="w-full px-4 py-3 rounded-xl bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 border border-zinc-300 dark:border-zinc-700 focus:ring-2 focus:ring-emerald-500 focus:outline-none text-sm transition-all" 
+                  placeholder="e.g. 50,000 ETB" 
+                />
               </div>
             </div>
 
             <div>
               <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Deadline</label>
-              <input required name="deadline" value={formData.deadline} onChange={handleChange} type="date" className="w-full px-4 py-3 rounded-xl bg-white text-gray-900 border border-gray-300 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-sira-blue focus:border-transparent transition-all dark:bg-gray-800 dark:text-gray-100 dark:border-gray-600 dark:placeholder-gray-500" />
+              <input 
+                required 
+                name="deadline" 
+                value={formData.deadline} 
+                onChange={handleChange} 
+                type="date" 
+                className="w-full px-4 py-3 rounded-xl bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 border border-zinc-300 dark:border-zinc-700 focus:ring-2 focus:ring-emerald-500 focus:outline-none text-sm transition-all" 
+              />
             </div>
 
             <div>
               <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Job Description</label>
-              <textarea required name="description" value={formData.description} onChange={handleChange} rows={5} className="w-full px-4 py-3 rounded-xl bg-white text-gray-900 border border-gray-300 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-sira-blue focus:border-transparent transition-all dark:bg-gray-800 dark:text-gray-100 dark:border-gray-600 dark:placeholder-gray-500 resize-none" placeholder="Describe the responsibilities, requirements, and benefits..."></textarea>
+              <textarea 
+                required 
+                name="description" 
+                value={formData.description} 
+                onChange={handleChange} 
+                rows={5} 
+                className="w-full px-4 py-3 rounded-xl bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 border border-zinc-300 dark:border-zinc-700 focus:ring-2 focus:ring-emerald-500 focus:outline-none text-sm transition-all resize-none" 
+                placeholder="Describe the responsibilities, requirements, and benefits..."
+              />
             </div>
 
-            <div className="p-5 bg-gray-50 rounded-2xl border border-gray-100 space-y-4 dark:bg-gray-800/50 dark:border-gray-700">
-              <h3 className="font-semibold text-gray-900">Application Method</h3>
+            <div className="p-5 bg-gray-50 rounded-2xl border border-gray-200 space-y-4 dark:bg-zinc-800/40 dark:border-zinc-700">
+              <h3 className="font-semibold text-gray-900 dark:text-white">Application Method</h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 {(['telegram', 'phone', 'link'] as const).map(type => (
-                  <label key={type} className={`cursor-pointer px-4 py-3 rounded-xl border ${formData.applyMethodType === type ? 'border-sira-blue bg-sira-blue text-white' : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'} flex items-center justify-center font-medium transition-colors dark:bg-gray-800 dark:text-gray-200 dark:hover:border-gray-500`}>
+                  <label 
+                    key={type} 
+                    className={`cursor-pointer px-4 py-3 rounded-xl border ${
+                      formData.applyMethodType === type 
+                        ? 'border-emerald-500 bg-emerald-500 text-white shadow-sm' 
+                        : 'border-zinc-300 bg-white text-zinc-700 hover:border-zinc-400 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:border-zinc-600'
+                    } flex items-center justify-center font-medium transition-colors text-sm`}
+                  >
                     <input type="radio" name="applyMethodType" value={type} checked={formData.applyMethodType === type} onChange={handleChange} className="sr-only" />
                     <span className="capitalize">{type}</span>
                   </label>
@@ -165,7 +224,7 @@ export function EditJob() {
                   value={formData.applyMethodValue} 
                   onChange={handleChange} 
                   type={formData.applyMethodType === 'link' ? 'url' : 'text'} 
-                  className="w-full px-4 py-3 rounded-xl bg-white text-gray-900 border border-gray-300 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-sira-blue focus:border-transparent transition-all dark:bg-gray-800 dark:text-gray-100 dark:border-gray-600 dark:placeholder-gray-500" 
+                  className="w-full px-4 py-3 rounded-xl bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 border border-zinc-300 dark:border-zinc-700 focus:ring-2 focus:ring-emerald-500 focus:outline-none text-sm transition-all" 
                   placeholder={
                     formData.applyMethodType === 'telegram' ? '@username' : 
                     formData.applyMethodType === 'phone' ? '+251...' : 
