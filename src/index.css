@@ -1,17 +1,27 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap');
 @import "tailwindcss";
 
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-  --color-sira-blue: #2563EB;
-  --color-sira-orange: #FF7A00;
-  --color-sira-gray: #808080;
-  --color-sira-bg: #0B0F19;
-  --color-sira-card: #111827;
-  --color-sira-border: #1F2937;
+  --color-primary: #0369A1;
+  --color-on-primary: #FFFFFF;
+  --color-secondary: #0EA5E9;
+  --color-on-secondary: #0F172A;
+  --color-accent: #16A34A;
+  --color-on-accent: #FFFFFF;
+  --color-background: #F0F9FF;
+  --color-foreground: #0C4A6E;
+  --color-card: #FFFFFF;
+  --color-card-foreground: #0C4A6E;
+  --color-muted: #E7EFF5;
+  --color-muted-foreground: #475569;
+  --color-border: #BAE6FD;
+  --color-destructive: #DC2626;
+  --color-on-destructive: #FFFFFF;
+  --color-ring: #0369A1;
   
-  --font-sans: "Plus Jakarta Sans", system-ui, sans-serif;
+  --font-sans: "Inter", system-ui, sans-serif;
 }
 
 html {
@@ -24,8 +34,8 @@ html.dark {
 
 body {
   font-family: var(--font-sans);
-  background-color: #F8FAFC;
-  color: #0F172A;
+  background-color: var(--color-background);
+  color: var(--color-foreground);
   -webkit-font-smoothing: antialiased;
 }
 

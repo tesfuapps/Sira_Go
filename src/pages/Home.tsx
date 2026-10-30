@@ -542,24 +542,24 @@ export function Home() {
             return (
               <motion.div
                 key={idx}
-                whileHover={{ y: -4, scale: 1.02 }}
+                whileHover={{ y: -2, scale: 1.01 }}
                 transition={{ duration: 0.2 }}
                 onClick={() => setCategoryFilter(cat.cat as JobCategory)}
-                className={`p-6 rounded-3xl border transition-all cursor-pointer flex flex-col justify-between group ${
+                className={`p-4 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between group ${
                   isSelected 
-                    ? 'bg-blue-600/15 border-blue-500 text-slate-900 dark:text-white shadow-lg shadow-blue-500/10' 
+                    ? 'bg-blue-600/15 border-blue-500 text-slate-900 dark:text-white shadow-sm' 
                     : 'bg-white dark:bg-[#111827] border-slate-200 dark:border-[#1F2937] hover:border-blue-500/50 text-slate-800 dark:text-gray-200 shadow-sm'
                 }`}
               >
-                <div className="flex items-center justify-between mb-4">
-                  <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-gray-800/80 border border-slate-200 dark:border-gray-700/80 flex items-center justify-center text-blue-600 dark:text-blue-400 group-hover:scale-110 transition-transform">
-                    <Icon size={24} />
+                <div className="flex items-center justify-between mb-3">
+                  <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-gray-800/80 border border-slate-200 dark:border-gray-700/80 flex items-center justify-center text-blue-600 dark:text-blue-400 group-hover:scale-110 transition-transform">
+                    <Icon size={20} />
                   </div>
-                  <span className="text-xs font-bold text-slate-500 dark:text-gray-400">{cat.count}</span>
+                  <span className="text-[10px] font-bold text-slate-500 dark:text-gray-400">{cat.count}</span>
                 </div>
                 <div>
-                  <h3 className="font-extrabold text-lg text-slate-900 dark:text-white mb-1 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{cat.label}</h3>
-                  <p className="text-xs text-slate-500 dark:text-gray-400 font-medium">Explore open roles</p>
+                  <h3 className="font-extrabold text-sm text-slate-900 dark:text-white mb-0.5 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{cat.label}</h3>
+                  <p className="text-[10px] text-slate-500 dark:text-gray-400 font-medium">Explore open roles</p>
                 </div>
               </motion.div>
             );

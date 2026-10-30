@@ -80,10 +80,6 @@ export function TalentCard({ talent }: TalentCardProps) {
                 </div>
               )}
             </div>
-
-            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
-              {talent.availability}
-            </span>
           </div>
 
           <div>
@@ -105,26 +101,38 @@ export function TalentCard({ talent }: TalentCardProps) {
               {talent.title}
             </p>
 
-            {/* Trust Badges */}
-            {talent.badges && talent.badges.length > 0 && (
-              <div className="flex flex-wrap items-center gap-1 mt-1.5">
-                {talent.badges.includes('Verified Pro') && (
-                  <span className="inline-flex items-center gap-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
-                    <CheckCircle2 size={10} /> Verified
+            {/* Availability & Trust Badges */}
+            <div className="flex flex-wrap items-center gap-1 mt-1.5">
+              {talent.availability === 'Both' ? (
+                <>
+                  <span className="inline-flex items-center text-[10px] font-bold px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                    Freelance
                   </span>
-                )}
-                {talent.badges.includes('Top Rated') && (
-                  <span className="inline-flex items-center gap-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
-                    <Award size={10} /> Top Rated
+                  <span className="inline-flex items-center text-[10px] font-bold px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                    Full-Time
                   </span>
-                )}
-                {talent.badges.includes('Fast Responder') && (
-                  <span className="inline-flex items-center gap-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                    <Zap size={10} /> Fast
-                  </span>
-                )}
-              </div>
-            )}
+                </>
+              ) : (
+                <span className="inline-flex items-center text-[10px] font-bold px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                  {talent.availability}
+                </span>
+              )}
+              {talent.badges && talent.badges.includes('Verified Pro') && (
+                <span className="inline-flex items-center gap-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+                  <CheckCircle2 size={10} /> Verified
+                </span>
+              )}
+              {talent.badges && talent.badges.includes('Top Rated') && (
+                <span className="inline-flex items-center gap-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                  <Award size={10} /> Top Rated
+                </span>
+              )}
+              {talent.badges && talent.badges.includes('Fast Responder') && (
+                <span className="inline-flex items-center gap-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                  <Zap size={10} /> Fast
+                </span>
+              )}
+            </div>
 
             {/* Location & Rate Info */}
             <div className="flex items-center justify-between text-[11px] text-gray-500 dark:text-gray-400 mt-2">

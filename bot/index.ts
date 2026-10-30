@@ -719,6 +719,17 @@ async function handleMessage(msg: any) {
     return sendMainMenu(chatId, firstName);
   }
 
+  if (text.startsWith('/talent')) {
+    return callTelegram('sendMessage', {
+      chat_id: chatId,
+      text: `🌐 <b>Explore Talent Directory</b>\n\nFind skilled Ethiopian professionals. Visit the Talent Directory on Sira Go:`,
+      parse_mode: 'HTML',
+      reply_markup: {
+        inline_keyboard: [[{ text: '🌐 View Talent Directory', url: `${WEB_APP_URL}/talent` }]]
+      }
+    });
+  }
+
   if (text.startsWith('/jobs')) {
     const jobs = await fetchApprovedJobs();
     const session = sessions.get(chatId) || {};
@@ -762,6 +773,7 @@ async function handleMessage(msg: any) {
     const helpText = `ℹ️ <b>Sira Go Bot Commands:</b>\n\n` +
       `• /start - Launch Sira Go main menu\n` +
       `• /jobs - Browse active vacancies\n` +
+      `• /talent - Browse talent directory\n` +
       `• /search &lt;keyword&gt; - Search jobs\n` +
       `• /post - Post a vacancy (For Employers)\n` +
       `• /alerts - Subscribe to category notifications\n\n` +

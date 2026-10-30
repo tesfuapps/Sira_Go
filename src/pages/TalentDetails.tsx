@@ -239,7 +239,7 @@ export function TalentDetails() {
             </span>
 
             <span className="font-bold px-3 py-1 rounded-xl bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-300 border border-green-200 dark:border-green-800">
-              Availability: {talent.availability}
+              Availability: {talent.availability === 'Both' ? 'Freelance & Full-Time' : talent.availability}
             </span>
 
             <div className="flex items-center gap-1.5 font-medium">

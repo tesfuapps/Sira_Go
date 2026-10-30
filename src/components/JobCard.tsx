@@ -71,7 +71,7 @@ export function JobCard({ job }: { job: Job; key?: React.Key }) {
   return (
     <div 
       onClick={() => navigate(`/jobs/${job.id}`)}
-      className={`group bg-white dark:bg-[#111827] border border-slate-200 dark:border-[#1F2937] hover:border-blue-500/50 rounded-3xl p-6 transition-all duration-300 ease-out transform hover:-translate-y-1 shadow-md dark:shadow-[0_10px_30px_rgba(0,0,0,0.3)] flex flex-col relative cursor-pointer ${jobIsExpired ? 'opacity-70' : ''}`}
+      className={`group bg-white dark:bg-[#111827] border border-slate-200 dark:border-[#1F2937] hover:border-blue-500/50 rounded-3xl p-6 transition-all duration-300 ease-in-out transform hover:-translate-y-2 hover:shadow-xl hover:shadow-blue-500/10 shadow-md dark:shadow-none flex flex-col relative cursor-pointer ${jobIsExpired ? 'opacity-70' : ''}`}
     >
       <div className="flex items-start justify-between gap-3 mb-4">
         <div className="flex flex-wrap items-center gap-2">
